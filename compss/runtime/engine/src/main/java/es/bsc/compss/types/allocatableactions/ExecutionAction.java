@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
+import es.bsc.compss.api.COMPSsRuntime.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskProducer;
@@ -75,7 +76,6 @@ public class ExecutionAction extends AllocatableAction {
     private final LinkedList<Integer> jobs;
     private int transferErrors = 0;
     protected int executionErrors = 0;
-
 
     /**
      * Creates a new execution action
@@ -146,6 +146,10 @@ public class ExecutionAction extends AllocatableAction {
         JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + task.getId());
         transferErrors = 0;
         executionErrors = 0;
+        TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onSubmission();
+        }
         doInputTransfers();
     }
 
@@ -381,6 +385,11 @@ public class ExecutionAction extends AllocatableAction {
         // Profile the resource
         this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
 
+        TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onSuccesfulExecution();
+        }
+
         // Decrease the execution counter and set the task as finished and notify the producer
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
@@ -398,6 +407,10 @@ public class ExecutionAction extends AllocatableAction {
                     + " has failed; rescheduling task execution. (changing worker)");
             LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
                     + " has failed; rescheduling task execution. (changing worker)");
+        }
+        TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onErrorExecution();
         }
     }
 
@@ -425,7 +438,10 @@ public class ExecutionAction extends AllocatableAction {
         sb.append(" \n");
 
         ErrorManager.warn(sb.toString());
-
+        TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onFailedExecution();
+        }
         // Notify task failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FAILED);
@@ -439,7 +455,13 @@ public class ExecutionAction extends AllocatableAction {
      */
     @Override
     public final List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
-        return getCoreElementExecutors(task.getTaskDescription().getId());
+        LinkedList compatible = new LinkedList();
+        for (ResourceScheduler r : getCoreElementExecutors(task.getTaskDescription().getId())) {
+            if (r.getAssignedAppId() == null || r.getAssignedAppId() == this.task.getAppId()) {
+                compatible.add(r);
+            }
+        }
+        return compatible;
     }
 
     @Override
@@ -620,7 +642,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (// Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
+                !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 
@@ -634,6 +656,10 @@ public class ExecutionAction extends AllocatableAction {
         this.assignImplementation(impl);
         assignResource(targetWorker);
         targetWorker.scheduleAction(this);
+        TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onSchedule();
+        }
     }
 
     /*

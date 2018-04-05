@@ -47,10 +47,10 @@ public class MOScheduler extends TaskScheduler {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject res,
+    public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, Long appId, JSONObject res,
             JSONObject impls) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
-        return new MOResourceScheduler<>(w, res, impls);
+        return new MOResourceScheduler<>(w, appId, res, impls);
     }
 
     @Override
@@ -99,14 +99,10 @@ public class MOScheduler extends TaskScheduler {
      * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions
-     *            IN, list of actions free of data dependencies
-     * @param resourceFreeActions
-     *            IN, list of actions free of resource dependencies
-     * @param blockedCandidates
-     *            OUT, list of blocked candidates
-     * @param resource
-     *            Resource where the previous task was executed
+     * @param dataFreeActions IN, list of actions free of data dependencies
+     * @param resourceFreeActions IN, list of actions free of resource dependencies
+     * @param blockedCandidates OUT, list of blocked candidates
+     * @param resource Resource where the previous task was executed
      */
     @Override
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,

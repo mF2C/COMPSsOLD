@@ -219,14 +219,15 @@ public class TaskScheduler {
      *
      * @param <T>
      * @param w
+     * @param appId
      * @param defaultResources
      * @param defaultImplementations
      * @return
      */
-    public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject defaultResources,
+    public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w, Long appId, JSONObject defaultResources,
             JSONObject defaultImplementations) {
         // LOGGER.info("[TaskScheduler] Generate scheduler for resource " + w.getName());
-        return new ResourceScheduler<>(w, defaultResources, defaultImplementations);
+        return new ResourceScheduler<>(w, appId, defaultResources, defaultImplementations);
     }
 
     /**
@@ -615,7 +616,7 @@ public class TaskScheduler {
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui == null) {
             // Register worker if it's the first time it is useful.
-            ui = addWorker(worker, jsm.getJSONForResource(worker), jsm.getJSONForImplementations());
+            ui = addWorker(worker, rs.getAssingedAppId(), jsm.getJSONForResource(worker), jsm.getJSONForImplementations());
             startWorker(ui);
             workerDetected(ui);
         }
@@ -634,9 +635,9 @@ public class TaskScheduler {
      *            Worker to incorporate
      * @return the ResourceScheduler that will manage the scheduling for the given worker
      */
-    private <T extends WorkerResourceDescription> ResourceScheduler<T> addWorker(Worker<T> worker, JSONObject jsonResource,
+    private <T extends WorkerResourceDescription> ResourceScheduler<T> addWorker(Worker<T> worker, Long appId, JSONObject jsonResource,
             JSONObject jsonImpls) {
-        ResourceScheduler<T> ui = generateSchedulerForResource(worker, jsonResource, jsonImpls);
+        ResourceScheduler<T> ui = generateSchedulerForResource(worker, appId, jsonResource, jsonImpls);
         synchronized (workers) {
             workers.put(worker, ui);
         }

@@ -150,9 +150,6 @@ public abstract class Tracer {
         DESERIALIZE_OBJECT_PYTHON2(8, INSIDE_TASKS_TYPE, "Deserializing object"),
         SERIALIZE_OBJECT_PYTHON(9, INSIDE_TASKS_TYPE, "Serializing object"),
         CREATE_THREADS_PYTHON(10, INSIDE_TASKS_TYPE, "Create persistent threads"),
-        GET_BY_ID(11, INSIDE_TASKS_TYPE, "Get by ID persistent object"),
-        MAKE_PERSISTENT(12, INSIDE_TASKS_TYPE, "Make persistent object"),
-        DELETE_PERSISTENT(13, INSIDE_TASKS_TYPE, "Delete persistent object"),
         WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
 
         READY_COUNT(1, READY_COUNTS, "Ready queue count");

@@ -19,12 +19,13 @@ package es.bsc.compss.types.resources.updates;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.concurrent.Semaphore;
 
+
 public class PendingReduction<T extends WorkerResourceDescription> extends ResourceUpdate<T> {
 
     private final Semaphore sem;
 
-    public PendingReduction(T reduction) {
-        super(reduction);
+    public PendingReduction(T reduction, Long appId) {
+        super(reduction, appId);
         this.sem = new Semaphore(0);
     }
 

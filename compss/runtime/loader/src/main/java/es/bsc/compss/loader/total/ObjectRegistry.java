@@ -46,8 +46,6 @@ public class ObjectRegistry {
         this.serialDir = api.getTempDir();
         this.appTaskObjects = new TreeMap<>();
         this.internalObjects = new TreeMap<>();
-
-        this.itApi.setObjectRegistry(this);
     }
 
     public int newObjectParameter(Object obj) {

@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class CoreManager {
 
     // LOGGER
@@ -109,9 +110,8 @@ public class CoreManager {
     }
 
     /**
-     * Registers a new Implementation for a given CoreElement The coreElement
-     * MUST have been previously registered The impls and signs must have the
-     * same size and are sorted
+     * Registers a new Implementation for a given CoreElement The coreElement MUST have been previously registered The
+     * impls and signs must have the same size and are sorted
      *
      * @param coreId
      * @param impls
@@ -150,8 +150,7 @@ public class CoreManager {
     }
 
     /**
-     * Returns the CoreId associated to a registered signature The coreId MUST
-     * have been previously registered
+     * Returns the CoreId associated to a registered signature The coreId MUST have been previously registered
      *
      * @param signature
      * @return
@@ -174,9 +173,8 @@ public class CoreManager {
     }
 
     /**
-     * Returns the signature of a given implementationId of a give coreElementId
-     * The coreId MUST have been previously registered The implId MUST have been
-     * previously registered
+     * Returns the signature of a given implementationId of a give coreElementId The coreId MUST have been previously
+     * registered The implId MUST have been previously registered
      *
      * @param coreId
      * @param implId
@@ -253,13 +251,12 @@ public class CoreManager {
     }
 
     /**
-     * Looks for all the cores from in the annotated Interface which constraint
-     * are fullfilled by the resource description passed as a parameter
+     * Looks for all the cores from in the annotated Interface which constraint are fullfilled by the resource
+     * description passed as a parameter
      *
      * @param rd ResourceDescription to find cores compatible to
      *
-     * @return the list of cores which constraints are fulfilled by th described
-     * resource
+     * @return the list of cores which constraints are fulfilled by th described resource
      */
     public static List<Integer> findExecutableCores(ResourceDescription rd) {
         List<Integer> executableList = new LinkedList<>();

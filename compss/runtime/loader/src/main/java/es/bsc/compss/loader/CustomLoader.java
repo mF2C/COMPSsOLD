@@ -48,10 +48,10 @@ public class CustomLoader extends URLClassLoader {
      * 
      * @see java.lang.ClassLoader#loadClass(java.lang.String)
      */
+    @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         // Have we already loaded this class?
         Class<?> c = findLoadedClass(name);
-
         if (c == null) {
             if (name.startsWith(LoaderConstants.CUSTOM_LOADER_PREFIX) || name.startsWith("javassist")) {
                 /*
@@ -59,13 +59,11 @@ public class CustomLoader extends URLClassLoader {
                  * ones from our version of javassist
                  */
                 c = findClass(name);
-                return c;
             } else {
                 // Let the rest of classes be loaded by the parent loader
-                return getParent().loadClass(name);
+                c = getParent().loadClass(name);
             }
-        } else
-            return c;
+        }
+        return c;
     }
-
 }

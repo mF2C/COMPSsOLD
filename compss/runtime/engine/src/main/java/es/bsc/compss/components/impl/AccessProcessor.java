@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.api.COMPSsRuntime.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
@@ -68,6 +69,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
 
 /**
  * Component to handle the tasks accesses to files and object
@@ -168,22 +170,26 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Method Task
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
+     * @param monitor
+     * @param signature
      * @param isPrioritary
      * @param numNodes
      * @param isReplicated
+     * @param hasReturn
      * @param isDistributed
      * @param hasTarget
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public int newTask(Long appId, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn,
+        Task currentTask = new Task(appId, monitor, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn,
                 parameters);
-
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        if (registeredMonitor != null) {
+            registeredMonitor.onCreation();
+        }
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
@@ -194,20 +200,25 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Service task
      *
      * @param appId
+     * @param monitor
      * @param namespace
      * @param service
      * @param port
      * @param operation
      * @param priority
      * @param hasTarget
+     * @param hasReturn
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             boolean hasReturn, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, parameters);
-
+        Task currentTask = new Task(appId, monitor, namespace, service, port, operation, priority, hasTarget, hasReturn, parameters);
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        if (registeredMonitor != null) {
+            registeredMonitor.onCreation();
+        }
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
         }
@@ -232,16 +243,16 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         // Tell the DM that the application wants to access a file.
         finishFileAccess(fap);
-       
+
     }
-    
+
     private void finishFileAccess(FileAccessParams fap) {
-    	if (!requestQueue.offer(new FinishFileAccessRequest(fap))) {
+        if (!requestQueue.offer(new FinishFileAccessRequest(fap))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing file access");
         }
-	}
+    }
 
-	/**
+    /**
      * Notifies a main access to a given file @sourceLocation in mode @fap
      *
      * @param sourceLocation
@@ -389,7 +400,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an external object {@code id}
-     * 
+     *
      * @param fileName
      * @param id
      * @param hashCode
@@ -413,7 +424,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         waitForTask(oaId.getDataId(), AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
-        
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getId();
 
@@ -688,8 +698,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request to retrieve the result files from the workers to the
-     * master
+     * Adds a request to retrieve the result files from the workers to the master
      *
      * @param appId
      */

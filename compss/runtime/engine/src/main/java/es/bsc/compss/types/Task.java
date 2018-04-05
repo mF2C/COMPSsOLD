@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.api.COMPSsRuntime.TaskMonitor;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.colors.ColorConfiguration;
@@ -49,7 +50,6 @@ public class Task implements Comparable<Task> {
         FAILED // Task has failed
     }
 
-
     // Task fields
     private final long appId;
     private final int taskId;
@@ -70,21 +70,24 @@ public class Task implements Comparable<Task> {
     // Execution count information
     private int executionCount;
 
+    //Task Monitoring
+    private TaskMonitor taskMonitor;
 
     /**
      * Creates a new METHOD task with the given parameters
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
+     * @param monitor
+     * @param signature
      * @param isPrioritary
      * @param numNodes
      * @param isReplicated
+     * @param hasReturn
      * @param isDistributed
      * @param hasTarget
      * @param parameters
      */
-    public Task(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public Task(Long appId, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
 
         this.appId = appId;
@@ -95,21 +98,24 @@ public class Task implements Comparable<Task> {
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
+        this.taskMonitor = monitor;
     }
 
     /**
      * Creates a new SERVICE task with the given parameters
      *
      * @param appId
+     * @param monitor
      * @param namespace
      * @param service
      * @param port
      * @param operation
      * @param isPrioritary
      * @param hasTarget
+     * @param hasReturn
      * @param parameters
      */
-    public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
+    public Task(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
             boolean hasReturn, Parameter[] parameters) {
 
         this.appId = appId;
@@ -119,6 +125,7 @@ public class Task implements Comparable<Task> {
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
+        this.taskMonitor = monitor;
     }
 
     /**
@@ -364,6 +371,15 @@ public class Task implements Comparable<Task> {
      */
     public List<ExecutionAction> getExecutions() {
         return executions;
+    }
+
+    /**
+     * Returns the monitor associated to the Task
+     *
+     * @return
+     */
+    public TaskMonitor getTaskMonitor() {
+        return taskMonitor;
     }
 
     @Override

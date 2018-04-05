@@ -60,7 +60,6 @@ public class ResourceManagerTest {
         }
     };
 
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -260,7 +259,7 @@ public class ResourceManagerTest {
         }
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
-        ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
+        ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1, null);
         if (!ResourceManager.getPendingCreationRequests().isEmpty() || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
@@ -269,7 +268,7 @@ public class ResourceManagerTest {
             fail("ResourceManager is not properly adding the new cloud resources");
         }
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
-        ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
+        ResourceManager.reduceDynamicResource(cmw1, new PendingReduction<>(reduction1, null));
         ResourceManager.terminateCloudResource(cmw1, reduction1);
         if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
                 || ResourceManager.getDynamicResource(vmName1) != null || ResourceManager.getWorker(vmName1) != null) {
@@ -304,7 +303,7 @@ public class ResourceManagerTest {
 
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
-        ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
+        ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1, null);
         if (ResourceManager.getPendingCreationRequests().size() != 2 || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
@@ -315,7 +314,7 @@ public class ResourceManagerTest {
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
-        ResourceManager.addCloudWorker(rcr2, cmw2, cmrd2);
+        ResourceManager.addCloudWorker(rcr2, cmw2, cmrd2, null);
         if (ResourceManager.getPendingCreationRequests().size() != 1 || ResourceManager.getPendingCreationRequests().contains(rcr2)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
@@ -325,7 +324,7 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
-        ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
+        ResourceManager.reduceDynamicResource(cmw1, new PendingReduction<>(reduction1, null));
         ResourceManager.terminateCloudResource(cmw1, reduction1);
         if (ResourceManager.getPendingCreationRequests().size() != 1) {
             fail("ResourceManager is not properly registering the pending resouce creations");
@@ -344,7 +343,7 @@ public class ResourceManagerTest {
 
         String vmName3 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw3 = new ExtendedCloudMethodWorker(vmName3, cp1, cmrd3, new FakeNode(vmName3), 0, new HashMap<>());
-        ResourceManager.addCloudWorker(rcr3, cmw3, cmrd3);
+        ResourceManager.addCloudWorker(rcr3, cmw3, cmrd3, null);
         if (!ResourceManager.getPendingCreationRequests().isEmpty()) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
@@ -354,7 +353,7 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction2 = new CloudMethodResourceDescription(cmrd2);
-        ResourceManager.reduceResource(cmw2, new PendingReduction<>(reduction2));
+        ResourceManager.reduceDynamicResource(cmw2, new PendingReduction<>(reduction2, null));
         ResourceManager.terminateCloudResource(cmw2, reduction2);
         if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
                 || ResourceManager.getDynamicResource(vmName2) != null || ResourceManager.getWorker(vmName2) != null) {
@@ -400,7 +399,7 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction4 = new CloudMethodResourceDescription(cmrd4);
-        ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction4));
+        ResourceManager.reduceDynamicResource(cmw3, new PendingReduction<>(reduction4, null));
         ResourceManager.terminateCloudResource(cmw3, reduction4);
         if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
                 || ResourceManager.getDynamicResource(vmName3) != cmw3 || ResourceManager.getWorker(vmName3) != cmw3) {
@@ -416,7 +415,7 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction3 = new CloudMethodResourceDescription(cmrd3);
-        ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction3));
+        ResourceManager.reduceDynamicResource(cmw3, new PendingReduction<>(reduction3, null));
         ResourceManager.terminateCloudResource(cmw3, reduction3);
         if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
                 || ResourceManager.getDynamicResource(vmName3) != null || ResourceManager.getWorker(vmName3) != null) {

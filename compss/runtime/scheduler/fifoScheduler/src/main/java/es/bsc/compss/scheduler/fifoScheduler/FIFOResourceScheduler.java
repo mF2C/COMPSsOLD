@@ -32,11 +32,12 @@ public class FIFOResourceScheduler<T extends WorkerResourceDescription> extends 
      * New ready resource scheduler instance
      *
      * @param w
+     * @param appId
      * @param resJSON
      * @param implJSON
      */
-    public FIFOResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
-        super(w, resJSON, implJSON);
+    public FIFOResourceScheduler(Worker<T> w, Long appId, JSONObject resJSON, JSONObject implJSON) {
+        super(w, appId, resJSON, implJSON);
     }
 
     /*

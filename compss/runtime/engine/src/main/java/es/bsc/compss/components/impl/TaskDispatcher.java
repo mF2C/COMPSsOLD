@@ -56,9 +56,10 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Component used as interface between the task analysis and the task scheduler
- * Manage and handles requests for task execution, task status, etc.
+ * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
+ * execution, task status, etc.
  *
  */
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
@@ -121,7 +122,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         // Insert workers
         for (Worker<?> worker : ResourceManager.getAllWorkers()) {
             Worker<A> w = (Worker<A>) worker;
-            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
+            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription(), null));
         }
         LOGGER.info("Initialization finished");
     }

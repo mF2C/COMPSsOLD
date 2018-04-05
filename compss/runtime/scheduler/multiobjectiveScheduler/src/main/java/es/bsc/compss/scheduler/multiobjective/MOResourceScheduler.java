@@ -80,9 +80,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     private final double idlePower; // W
     private final double idlePrice; // Currency/h
 
-
-    public MOResourceScheduler(Worker<T> w, JSONObject resourceJSON, JSONObject implsJSON) {
-        super(w, resourceJSON, implsJSON);
+    public MOResourceScheduler(Worker<T> w, Long appId, JSONObject resourceJSON, JSONObject implsJSON) {
+        super(w, appId, resourceJSON, implsJSON);
         gaps = new LinkedList<>();
         addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
         implementationsCount = new int[CoreManager.getCoreCount()][];

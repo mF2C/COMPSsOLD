@@ -27,6 +27,7 @@ import java.io.NotSerializableException;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -39,6 +40,22 @@ public class Serializer {
 
     private Serializer() {
         throw new NonInstantiableException("Serializer");
+    }
+
+    /**
+     * Serializes an objects and leaves it in a byt4e array
+     *
+     * @param o
+     *            object to be serialized
+     * @throws IOException
+     *            Error writing the file
+     */
+    public static byte[] serialize(Object o) throws IOException {
+        try {
+            return serializeBinary(o);
+        } catch (NotSerializableException e) {
+            return serializeXML(o);
+        }
     }
 
     /**
@@ -68,7 +85,7 @@ public class Serializer {
      * @throws IOException
      *             Error reading the file
      */
-    public static Object deserialize(String file) throws IOException, ClassNotFoundException {
+    public static <T> T deserialize(String file) throws IOException, ClassNotFoundException {
         try {
             return deserializeBinary(file);
         } catch (Exception e) {
@@ -85,12 +102,28 @@ public class Serializer {
      * @throws IOException
      *             Error reading the file
      */
-    public static Object deserialize(byte[] b) throws IOException, ClassNotFoundException {
+    public static <T> T deserialize(byte[] b) throws IOException, ClassNotFoundException {
         try {
-            return deserializeBinary(b);
+            return (T)deserializeBinary(b);
         } catch (Exception e) {
-            return deserializeXML(b);
+            return (T)deserializeXML(b);
         }
+    }
+
+    /**
+     * Serializes an objects using the default java serializer and leaves it in a byte array
+     *
+     * @param o
+     *            object to be serialized
+     * @throws IOException
+     *            Error writing the file
+     */
+    private static byte[] serializeBinary(Object o) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(o);
+        oos.close();
+        return bos.toByteArray();
     }
 
     /**
@@ -119,12 +152,12 @@ public class Serializer {
      * @throws IOException
      *             Error reading the file
      */
-    private static Object deserializeBinary(String file) throws IOException, ClassNotFoundException {
+    private static <T> T deserializeBinary(String file) throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(file);
         ObjectInputStream ois = new ObjectInputStream(fis);
         Object o = ois.readObject();
         ois.close();
-        return o;
+        return (T) o;
     }
 
     /**
@@ -135,13 +168,13 @@ public class Serializer {
      * @return the object read from the data
      *
      */
-    private static Object deserializeBinary(byte[] data) throws IOException, ClassNotFoundException {
+    private static <T> T deserializeBinary(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInput in = null;
 
         try {
             in = new ObjectInputStream(bis);
-            return in.readObject();
+            return (T) in.readObject();
         } finally {
             try {
                 bis.close();
@@ -156,6 +189,24 @@ public class Serializer {
                 // ignore close exception
             }
         }
+    }
+
+    /**
+     * Serializes an objects using the XML Encoder and leaves it in a byte array
+     *
+     * @param o
+     *            object to be serialized
+     * @param file
+     *            file where to store the serialized object
+     * @throws IOException
+     *            Error writing the file
+     */
+    private static byte[] serializeXML(Object o) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bos));
+        e.writeObject(o);
+        e.close();
+        return bos.toByteArray();
     }
 
     /**
@@ -184,29 +235,28 @@ public class Serializer {
      * @throws IOException
      *             Error reading the file
      */
-    private static Object deserializeXML(String file) throws IOException {
+    private static <T> T deserializeXML(String file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         XMLDecoder d = new XMLDecoder(new BufferedInputStream(fis));
         Object o = d.readObject();
         d.close();
-        return o;
+        return (T) o;
     }
 
     /**
      * Reads a XML-serialized object from a byte array
      *
-     * @param data
-     *            containing the serialized object
+     * @param data containing the serialized object
      * @return the object read from the data
      *
      */
-    private static Object deserializeXML(byte[] data) throws IOException, ClassNotFoundException {
+    private static <T> T deserializeXML(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         XMLDecoder d = null;
 
         try {
             d = new XMLDecoder(new BufferedInputStream(bis));
-            return d.readObject();
+            return (T) d.readObject();
         } finally {
             if (d != null) {
                 d.close();

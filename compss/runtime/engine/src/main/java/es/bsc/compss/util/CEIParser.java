@@ -51,20 +51,21 @@ public class CEIParser {
         LANG = l;
     }
 
-
     /**
      * Parses the different interfaces
-     * 
+     *
      * @return
      */
     public static void parse() {
         switch (LANG) {
             case JAVA:
                 String appName = System.getProperty(COMPSsConstants.APP_NAME);
-                try {
-                    loadJava(Class.forName(appName + "Itf"));
-                } catch (ClassNotFoundException ex) {
-                    throw new UndefinedConstraintsSourceException(appName + "Itf class cannot be found.");
+                if (appName != null) {
+                    try {
+                        loadJava(Class.forName(appName + "Itf"));
+                    } catch (ClassNotFoundException ex) {
+                        throw new UndefinedConstraintsSourceException(appName + "Itf class cannot be found.");
+                    }
                 }
                 break;
             case C:
@@ -81,12 +82,11 @@ public class CEIParser {
 
     /**
      * JAVA CONSTRUCTOR
-     * 
+     *
      * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
      * in the annotated interface creates its signature and adds the constraints to the structures.
      *
-     * @param annotItfClass
-     *            package and name of the Annotated Interface class
+     * @param annotItfClass package and name of the Annotated Interface class
      * @return
      */
     public static List<Integer> loadJava(Class<?> annotItfClass) {

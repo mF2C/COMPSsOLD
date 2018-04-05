@@ -32,6 +32,7 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.total.StreamRegistry;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
@@ -80,6 +81,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static boolean initialized = false;
 
     // Object registry
+    private static StreamRegistry sReg;
+
+    // Object registry
     private static ObjectRegistry oReg;
 
     // Components
@@ -122,7 +126,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init();
     }
-
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -360,6 +363,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             LOGGER.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
+        if (oReg == null) {
+            oReg = new ObjectRegistry(this);
+        }
+        if (sReg == null) {
+            sReg = new StreamRegistry(this);
+        }
         ErrorManager.init(this);
     }
 
@@ -403,7 +412,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
                 // oReg = new ObjectRegistry(this);
                 // }
-
                 // Initialize main runtime components
                 td = new TaskDispatcher();
                 ap = new AccessProcessor(td);
@@ -430,6 +438,67 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             } catch (ClassNotFoundException cnfe) {
                 ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
             }
+        }
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+    }
+
+    public synchronized void startIT(String className) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
+        }
+
+        // Console Log
+        Thread.currentThread().setName("APPLICATION");
+        if (COMPSs_VERSION == null) {
+            LOGGER.warn("Starting COMPSs Runtime");
+        } else if (COMPSs_BUILDNUMBER == null) {
+            LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION);
+        } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
+            COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
+            LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        } else {
+            LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        }
+
+        // Init Runtime
+        if (!initialized) {
+            // Application
+            synchronized (this) {
+                LOGGER.debug("Initializing components");
+
+                // Initialize object registry for bindings if needed
+                // String lang = System.getProperty(COMPSsConstants.LANG);
+                // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
+                // oReg = new ObjectRegistry(this);
+                // }
+                // Initialize main runtime components
+                td = new TaskDispatcher();
+                ap = new AccessProcessor(td);
+
+                // Initialize runtime tools components
+                if (GraphGenerator.isEnabled()) {
+                    graphMonitor = new GraphGenerator();
+                    ap.setGM(graphMonitor);
+                }
+                if (RuntimeMonitor.isEnabled()) {
+                    runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(COMPSsConstants.MONITOR)));
+                }
+
+                // Log initialization
+                initialized = true;
+                LOGGER.debug("Ready to process tasks");
+            }
+        }
+        LOGGER.debug("Initializing " + className);
+        try {
+            td.addInterface(Class.forName(className));
+        } catch (ClassNotFoundException cnfe) {
+            ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
         }
 
         if (Tracer.isActivated()) {
@@ -562,8 +631,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
             Object... parameters) {
+        return executeTask(appId, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
+                Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
+                parameterCount, parameters);
+    }
 
-        return executeTask(appId, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
+    @Override
+    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
+            Object... parameters) {
+        return executeTask(appId, monitor, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
                 parameterCount, parameters);
     }
@@ -576,7 +652,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
-        return executeTask(appId, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+        return executeTask(appId, null, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameterCount, parameters);
+    }
+
+    @Override
+    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+
+        return executeTask(appId, monitor, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
                 parameterCount, parameters);
     }
 
@@ -587,17 +671,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int parameterCount, Object... parameters) {
 
-        return executeTask(appId, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+        return executeTask(appId, null, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameterCount, parameters);
+    }
+
+    @Override
+    public int executeTask(Long appId, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, int parameterCount, Object... parameters) {
+
+        return executeTask(appId, monitor, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
                 parameterCount, parameters);
     }
 
     /**
      * Internal execute task to make API options only as a wrapper
-     * 
+     *
      * @param appId
-     * @param hasSignature
-     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
-     *            methodClass parameters
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     * and methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -610,7 +701,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param parameters
      * @return
      */
-    private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
+    private int executeTask(Long appId, TaskMonitor monitor, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         // Tracing flag for task creation
@@ -640,7 +731,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Register the task
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
+        int task = ap.newTask(appId, monitor, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
 
         // End tracing event
         if (Tracer.isActivated()) {
@@ -653,7 +744,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns whether the method parameters define a return or not
-     * 
+     *
      * @param parameters
      * @return
      */
@@ -675,6 +766,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+        return executeTask(appId, null, namespace, service, port, operation, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, parameterCount, parameters);
+    }
+
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -695,7 +791,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         boolean hasReturn = hasReturn(pars);
 
         // Register the task
-        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, pars);
+        int task = ap.newTask(appId, monitor, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -883,8 +979,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Sets the Object Registry
      */
     @Override
-    public void setObjectRegistry(ObjectRegistry oReg) {
-        COMPSsRuntimeImpl.oReg = oReg;
+    public ObjectRegistry getObjectRegistry() {
+        return oReg;
+    }
+
+    /**
+     * Sets the Object Registry
+     */
+    @Override
+    public StreamRegistry getStreamRegistry() {
+        return sReg;
     }
 
     /**
@@ -1020,55 +1124,58 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
-        // Parameter parsing needed, object is not serializable
-        int i = 0;
-        for (int npar = 0; npar < parameterCount; ++npar) {
-            DataType type = (DataType) parameters[i + 1];
-            Direction direction = (Direction) parameters[i + 2];
-            Stream stream = (Stream) parameters[i + 3];
-            String prefix = (String) parameters[i + 4];
+        try {
+            // Parameter parsing needed, object is not serializable
+            int i = 0;
+            for (int npar = 0; npar < parameterCount; ++npar) {
+                DataType type = (DataType) parameters[i + 1];
+                Direction direction = (Direction) parameters[i + 2];
+                Stream stream = (Stream) parameters[i + 3];
+                String prefix = (String) parameters[i + 4];
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
-            }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
+                }
 
-            switch (type) {
-                case FILE_T:
-                    try {
-                        String fileName = (String) parameters[i];
-                        String originalName = new File(fileName).getName();
-                        DataLocation location = createLocation((String) parameters[i]);
-                        pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
-                    } catch (Exception e) {
-                        LOGGER.error(ERROR_FILE_NAME, e);
-                        ErrorManager.fatal(ERROR_FILE_NAME, e);
-                    }
+                switch (type) {
+                    case FILE_T:
+                        try {
+                            String fileName = (String) parameters[i];
+                            String originalName = new File(fileName).getName();
+                            DataLocation location = createLocation((String) parameters[i]);
+                            pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
+                        } catch (Exception e) {
+                            LOGGER.error(ERROR_FILE_NAME, e);
+                            ErrorManager.fatal(ERROR_FILE_NAME, e);
+                        }
 
-                    break;
+                        break;
 
-                case PSCO_T:
-                case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
-                    break;
+                    case PSCO_T:
+                    case OBJECT_T:
+                        pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
+                        break;
 
-                case EXTERNAL_OBJECT_T:
-                    String id = (String) parameters[i];
-                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, id, externalObjectHashcode(id));
-                    break;
+                    case EXTERNAL_OBJECT_T:
+                        String id = (String) parameters[i];
+                        pars[npar] = new ExternalObjectParameter(direction, stream, prefix, id, externalObjectHashcode(id));
+                        break;
 
-                default:
-                    /*
+                    default:
+                        /*
                      * Basic types (including String). The only possible direction is IN, warn otherwise
-                     */
-                    if (direction != Direction.IN) {
-                        LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
-                    }
-                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
-                    break;
+                         */
+                        if (direction != Direction.IN) {
+                            LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
+                        }
+                        pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
+                        break;
+                }
+                i += 5;
             }
-            i += 5;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         return pars;
     }
 

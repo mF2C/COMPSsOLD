@@ -26,16 +26,20 @@ public abstract class ResourceUpdate<T extends ResourceDescription> {
         REDUCE // Reducing resource capabilities
     }
 
-
     private final T modification;
+    private final Long assingedAppId;
 
-
-    protected ResourceUpdate(T modification) {
+    protected ResourceUpdate(T modification, Long appId) {
         this.modification = modification;
+        this.assingedAppId = appId;
     }
 
     public final T getModification() {
         return modification;
+    }
+
+    public final Long getAssingedAppId() {
+        return assingedAppId;
     }
 
     public abstract Type getType();

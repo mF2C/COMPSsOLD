@@ -122,8 +122,9 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     /**
-     * Returns the Resource associated to the given name @name Null if any resource has been registered with the
-     * name @name
+     * Returns the Resource associated to the given name @name Null if any resource has been registered with the name
+     *
+     * @name
      *
      * @param name
      * @return
@@ -197,6 +198,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Gets the list of obsolete files
+     *
      * @return List of logicalData objects
      */
     public final LogicalData[] pollObsoletes() {

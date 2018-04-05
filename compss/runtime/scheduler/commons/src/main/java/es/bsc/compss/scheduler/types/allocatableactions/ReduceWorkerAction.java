@@ -27,8 +27,8 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -89,9 +89,9 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             @Override
             public void run() {
                 Thread.currentThread().setName(worker.getName() + " stopper");
-                CloudMethodWorker w = (CloudMethodWorker) worker.getResource();
+                DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
                 PendingReduction<WorkerResourceDescription> crd = (PendingReduction<WorkerResourceDescription>) ru;
-                ResourceManager.reduceResource(w, crd);
+                ResourceManager.reduceDynamicResource(w, crd);
                 w.endTask((MethodResourceDescription) getResourceConsumption());
                 try {
                     ru.waitForCompletion();
@@ -140,7 +140,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[] { impl };
+        Implementation[] impls = new Implementation[]{impl};
         return impls;
     }
 
@@ -168,7 +168,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
     }
-    
+
     @Override
     public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);

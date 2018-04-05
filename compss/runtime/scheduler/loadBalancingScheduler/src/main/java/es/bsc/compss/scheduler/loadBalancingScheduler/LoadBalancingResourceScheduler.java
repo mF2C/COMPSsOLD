@@ -34,11 +34,12 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
      * New ready resource scheduler instance
      *
      * @param w
+     * @param appId
      * @param resJSON
      * @param implJSON
      */
-    public LoadBalancingResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
-        super(w, resJSON, implJSON);
+    public LoadBalancingResourceScheduler(Worker<T> w, Long appId, JSONObject resJSON, JSONObject implJSON) {
+        super(w, appId, resJSON, implJSON);
     }
 
     /*

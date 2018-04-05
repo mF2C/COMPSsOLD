@@ -33,6 +33,7 @@
 	<modules>
 		<module>commons</module>
 		<module>gat</module>
+		<module>mf2c</module>
 		<module>nio</module>
 		<module>ws</module>
 	</modules>

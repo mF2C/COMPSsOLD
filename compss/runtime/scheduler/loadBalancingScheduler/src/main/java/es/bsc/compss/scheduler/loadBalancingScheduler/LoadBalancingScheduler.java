@@ -51,11 +51,11 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(Worker<T> w, Long appId,
             JSONObject resJSON, JSONObject implJSON) {
 
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
-        return new LoadBalancingResourceScheduler<>(w, resJSON, implJSON);
+        return new LoadBalancingResourceScheduler<>(w, appId, resJSON, implJSON);
     }
 
     @Override

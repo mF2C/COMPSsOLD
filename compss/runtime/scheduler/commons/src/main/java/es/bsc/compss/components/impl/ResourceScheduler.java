@@ -54,6 +54,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
+    private final Long assignedAppId;
+
     // Task running in the resource
     private final List<AllocatableAction> running;
     // Task without enough resources to be executed right now
@@ -67,14 +69,14 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     // Profile information of the task executions
     private Profile[][] profiles;
 
-
     /**
      * Constructs a new Resource Scheduler associated to the worker @w
      *
      * @param w
+     * @param assignedAppId
      * @param defaultResource
      */
-    public ResourceScheduler(Worker<T> w, JSONObject defaultResource, JSONObject defaultImplementations) {
+    public ResourceScheduler(Worker<T> w, Long assignedAppId, JSONObject defaultResource, JSONObject defaultImplementations) {
         this.running = new LinkedList<>();
         this.blocked = new PriorityQueue<>(20, new Comparator<AllocatableAction>() {
 
@@ -87,6 +89,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         });
 
         this.myWorker = w;
+        this.assignedAppId = assignedAppId;
         this.pendingModifications = new LinkedList<>();
         JSONObject resMap;
         if (defaultResource != null) {
@@ -114,6 +117,15 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public final String getName() {
         return this.myWorker.getName();
+    }
+
+    /**
+     * Returns the id of the only application whose tasks can run on the resource
+     *
+     * @return
+     */
+    public Long getAssignedAppId() {
+        return this.assignedAppId;
     }
 
     /**
@@ -197,10 +209,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Prepares the default profiles for each implementation cores
      *
-     * @param resMap
-     *            default profile values for the resource
-     * @param implMap
-     *            default profile values for the implementation
+     * @param resMap default profile values for the resource
+     * @param implMap default profile values for the implementation
      *
      * @return default profile structure
      */

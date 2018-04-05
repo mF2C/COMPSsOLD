@@ -167,21 +167,19 @@ public class TraceMerger {
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
             
-        }
-        masterWriter.close();
-
-        logger.debug("Merging finished.");
-
-        if (!debug) {
-            logger.debug("Removing folder " + workingDir + File.separator + traceSubDir + File
-                .separator + workerSubDir);
-            try{
-                removeFolder(workingDir + File.separator + traceSubDir + File.separator +
-                        workerSubDir);
-            } catch (Exception e) {
-                logger.warn("Could not remove python temporal tracing folder.\n" + e.toString());
+            if (!debug) {
+                logger.debug("Removing folder " + workingDir + File.separator + traceSubDir + File
+                    .separator + workerSubDir);
+                try{
+                    removeFolder(workingDir + File.separator + traceSubDir + File.separator +
+                            workerSubDir);
+                } catch (Exception e) {
+                    logger.warn("Could not remove python temporal tracing folder.\n" + e.toString());
+                }
             }
         }
+        masterWriter.close();
+        logger.debug("Merging finished.");
     }
 
     private void removeFolder(String sandBox) throws IOException {

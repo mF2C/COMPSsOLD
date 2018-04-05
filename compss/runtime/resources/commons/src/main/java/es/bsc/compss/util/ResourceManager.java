@@ -349,8 +349,9 @@ public class ResourceManager {
      *
      * @param worker
      * @param granted
+     * @param appId
      */
-    public static void addDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription granted) {
+    public static void addDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription granted, Long appId) {
         synchronized (pool) {
             worker.updatedFeatures();
             pool.addDynamicResource(worker);
@@ -361,7 +362,7 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
         }
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription());
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription(), appId);
         resourceUser.updatedResource(worker, ru);
 
         // Log new resource
@@ -377,7 +378,7 @@ public class ResourceManager {
      * @param worker
      * @param granted
      */
-    public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription granted) {
+    public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription granted, Long appId) {
         synchronized (pool) {
             CloudProvider cloudProvider = origin.getProvider();
             cloudProvider.confirmedCreation(origin, worker, granted);
@@ -390,7 +391,7 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
         }
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription());
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription(), appId);
         resourceUser.updatedResource(worker, ru);
 
         // Log new resource
@@ -424,7 +425,7 @@ public class ResourceManager {
             }
             pool.defineCriticalSet();
         }
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(extension);
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(extension, null);
         resourceUser.updatedResource(worker, ru);
 
         // Log modified resource
@@ -440,12 +441,12 @@ public class ResourceManager {
      * @param reduction
      */
     public static void reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
-        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
+        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction, null);
         resourceUser.updatedResource(worker, modification);
     }
 
     public static void reduceWholeWorker(MethodWorker worker) {
-        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
+        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy(), null);
         resourceUser.updatedResource(worker, modification);
     }
 
@@ -457,7 +458,7 @@ public class ResourceManager {
      * @param modification
      */
     @SuppressWarnings("unchecked")
-    public static <R extends WorkerResourceDescription> void reduceResource(CloudMethodWorker worker, PendingReduction<R> modification) {
+    public static <R extends WorkerResourceDescription> void reduceDynamicResource(DynamicMethodWorker worker, PendingReduction<R> modification) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {

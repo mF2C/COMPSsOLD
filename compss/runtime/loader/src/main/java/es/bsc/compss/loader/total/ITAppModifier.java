@@ -57,10 +57,9 @@ public class ITAppModifier {
     private static final boolean IS_MAIN_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS) != null
             && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
 
-
     /**
      * Modify method
-     * 
+     *
      * @param appName
      * @return
      * @throws NotFoundException
@@ -116,7 +115,7 @@ public class ITAppModifier {
          * Create IT App Editor
          */
         CtMethod[] instrCandidates = appClass.getDeclaredMethods(); // Candidates to be instrumented if they are not
-                                                                    // remote
+        // remote
         ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
         // itAppEditor.setAppId(itAppIdVar);
         // itAppEditor.setAppClass(appClass);
@@ -264,12 +263,11 @@ public class ITAppModifier {
         if (IS_MAIN_CLASS || IS_WS_CLASS) {
             toInsertBefore.append("System.setProperty(" + COMPSS_APP_CONSTANT + ", \"" + appClass.getName() + "\");");
         }
-        toInsertBefore.append(itApiVar + " = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
-                .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
-                .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI + ") "
-                        + itApiVar + " );")
-                .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI + ") "
-                        + itApiVar + " );")
+        toInsertBefore
+                .append(LoaderConstants.CLASS_COMPSS_API_IMPL + " " + itApiVar + "Impl = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
+                .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + "Impl;")
+                .append(itSRVar + " = ((" + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + "Impl ).getStreamRegistry();;")
+                .append(itORVar + " = ((" + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + "Impl ).getObjectRegistry();")
                 .append(itApiVar + ".startIT();");
 
         initializer.insertBefore(toInsertBefore.toString());

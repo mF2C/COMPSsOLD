@@ -40,8 +40,8 @@ public abstract class ReadyResourceScheduler<T extends WorkerResourceDescription
      * @param resJSON
      * @param implJSON
      */
-    public ReadyResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
-        super(w, resJSON, implJSON);
+    public ReadyResourceScheduler(Worker<T> w, Long appId, JSONObject resJSON, JSONObject implJSON) {
+        super(w, appId, resJSON, implJSON);
     }
 
     @Override

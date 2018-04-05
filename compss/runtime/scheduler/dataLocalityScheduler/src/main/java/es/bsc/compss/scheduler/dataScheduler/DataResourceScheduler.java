@@ -32,10 +32,12 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
      * New ready resource scheduler instance
      *
      * @param w
+     * @param appId
      * @param resJSON
+     * @param implJSON
      */
-    public DataResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
-        super(w, resJSON, implJSON);
+    public DataResourceScheduler(Worker<T> w, Long appId, JSONObject resJSON, JSONObject implJSON) {
+        super(w, appId, resJSON, implJSON);
     }
 
     /*

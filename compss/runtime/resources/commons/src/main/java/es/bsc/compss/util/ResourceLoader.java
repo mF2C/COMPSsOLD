@@ -76,6 +76,16 @@ public class ResourceLoader {
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
         init(resources_XML, resources_XSD, project_XML, project_XSD);
+        
+        if (resources_XML == null) {
+            LOGGER.warn("Resources file not defined! Starting runtime with no resources.");
+            return;
+        }
+        if (project_XML == null) {
+            LOGGER.warn("Project file not defined! Starting runtime with no resources.");
+            return;
+        }
+        
         loadFiles();
         loadRuntime();
     }

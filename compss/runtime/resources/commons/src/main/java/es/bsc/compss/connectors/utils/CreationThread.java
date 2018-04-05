@@ -160,7 +160,7 @@ public class CreationThread extends Thread {
                 }
             }
             granted.setWorker(r);
-            ResourceManager.addCloudWorker(rcr, r, granted.getDescription());
+            ResourceManager.addCloudWorker(rcr, r, granted.getDescription(), null);
         } else {
             // Resources are provided in an existing VM
             ResourceManager.increasedCloudWorker(rcr, r, granted.getDescription());

@@ -31,8 +31,15 @@ public interface COMPSsRuntime {
     public void startIT();
 
     /**
+     * Starts the COMPSs Runtime
+     *
+     * @param cei
+     */
+    public void startIT(String cei);
+
+    /**
      * Stops the COMPSs Runtime
-     * 
+     *
      * @param terminate
      */
     public void stopIT(boolean terminate);
@@ -43,7 +50,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Returns the COMPSs Application Directory
-     * 
+     *
      * @return
      */
     public String getApplicationDirectory();
@@ -54,7 +61,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Registers a new CoreElement in the Runtime
-     * 
+     *
      * @param coreElementSignature
      * @param implSignature
      * @param implConstraints
@@ -66,7 +73,7 @@ public interface COMPSsRuntime {
 
     /**
      * New Method task for C Binding
-     * 
+     *
      * @param appId
      * @param methodClass
      * @param methodName
@@ -80,8 +87,24 @@ public interface COMPSsRuntime {
             Object... parameters);
 
     /**
+     * New Method task for C Binding
+     *
+     * @param appId
+     * @param monitor
+     * @param methodClass
+     * @param methodName
+     * @param isPrioritary
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
+            Object... parameters);
+
+    /**
      * New Method task for Python Binding
-     * 
+     *
      * @param appId
      * @param signature
      * @param isPrioritary
@@ -97,8 +120,26 @@ public interface COMPSsRuntime {
             boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
+     * New Method task for Python Binding
+     *
+     * @param appId
+     * @param monitor
+     * @param signature
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, int parameterCount, Object... parameters);
+
+    /**
      * New Method Task for Loader
-     * 
+     *
      * @param appId
      * @param methdoClass
      * @param methodName
@@ -115,8 +156,27 @@ public interface COMPSsRuntime {
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
+     * New Method Task for Loader
+     *
+     * @param appId
+     * @param monitor
+     * @param methdoClass
+     * @param methodName
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String methdoClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+
+    /**
      * New service task
-     * 
+     *
      * @param appId
      * @param namespace
      * @param service
@@ -135,15 +195,36 @@ public interface COMPSsRuntime {
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
+     * New service task
+     *
+     * @param appId
+     * @param monitor
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+
+    /**
      * Notifies the Runtime that there are no more tasks created by the current appId
-     * 
+     *
      * @param appId
      */
     public void noMoreTasks(Long appId);
 
     /**
      * Freezes the task generation until all previous tasks have been executed
-     * 
+     *
      * @param appId
      */
     public void barrier(Long appId);
@@ -163,7 +244,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Returns the renaming of the file version opened
-     * 
+     *
      * @param fileName
      * @param mode
      * @return
@@ -172,7 +253,7 @@ public interface COMPSsRuntime {
 
     /**
      * close the opened file version
-     * 
+     *
      * @param fileName
      * @param mode
      * @return
@@ -181,7 +262,7 @@ public interface COMPSsRuntime {
 
     /**
      * Deletes the specified version of a file
-     * 
+     *
      * @param fileName
      * @return
      */
@@ -193,10 +274,30 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Emits a tracing event
-     * 
+     *
      * @param type
      * @param id
      */
     public void emitEvent(int type, long id);
 
+
+    public static interface TaskMonitor {
+
+        public void onCreation();
+
+        public void onAccessesProcess();
+
+        public void onSchedule();
+
+        public void onSubmission();
+
+        public void onErrorExecution();
+
+        public void onFailedExecution();
+
+        public void onSuccesfulExecution();
+
+        public void onCompletion();
+
+    }
 }

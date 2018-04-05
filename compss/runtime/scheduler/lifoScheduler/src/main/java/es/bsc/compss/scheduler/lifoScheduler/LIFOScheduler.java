@@ -27,9 +27,9 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them
- * in LIFO mode
+ * Representation of a Scheduler that considers only ready tasks and sorts them in LIFO mode
  *
  */
 public class LIFOScheduler extends ReadyScheduler {
@@ -50,9 +50,9 @@ public class LIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, Long appId, JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.info("[LIFOScheduler] Generate scheduler for resource " + w.getName());
-        return new LIFOResourceScheduler<>(w, resJSON, implJSON);
+        return new LIFOResourceScheduler<>(w, appId, resJSON, implJSON);
     }
 
     @Override

@@ -30,6 +30,7 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;

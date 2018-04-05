@@ -66,7 +66,6 @@ public class MOResourceSchedulerTest {
     // Test Logger
     private static final Logger LOGGER = LogManager.getLogger("Console");
 
-
     @BeforeClass
     public static void setUpClass() {
         LOGGER.info("Setup Class");
@@ -111,7 +110,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null, null);
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null, null, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -134,7 +133,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testEmpty() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null,
                 new JSONObject("{\"implementations\":{}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
@@ -158,7 +157,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetNoPrice() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null,
                 new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
                         + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
                 null);
@@ -184,7 +183,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetNoPower() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null,
                 new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
                         + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
                 null);
@@ -210,7 +209,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSet() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null,
                 new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
                         + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
                         + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
@@ -237,13 +236,13 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetCopy() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null,
                 new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
                         + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
                         + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
                 null);
         JSONObject jo = rs.toJSONObject();
-        rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo, null);
+        rs = new MOResourceScheduler<MethodResourceDescription>(worker, null, jo, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -315,7 +314,6 @@ public class MOResourceSchedulerTest {
         private static final long serialVersionUID = 2L;
 
         private final String feature;
-
 
         public CheckerException(String feature) {
             this.feature = feature;

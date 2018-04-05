@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.api.COMPSsRuntime;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,7 +61,7 @@ import es.bsc.compss.util.ErrorManager;
 
 /**
  * Class to analyze the data dependencies between tasks
- * 
+ *
  */
 public class TaskAnalyser {
 
@@ -98,10 +99,9 @@ public class TaskAnalyser {
     private static int synchronizationId;
     private static boolean taskDetectedAfterSync;
 
-
     /**
      * Creates a new Task Analyser instance
-     * 
+     *
      */
     public TaskAnalyser() {
         currentTaskCount = new HashMap<>();
@@ -119,7 +119,7 @@ public class TaskAnalyser {
 
     /**
      * Sets the TaskAnalyser co-workers
-     * 
+     *
      * @param DIP
      */
     public void setCoWorkers(DataInfoProvider DIP) {
@@ -128,7 +128,7 @@ public class TaskAnalyser {
 
     /**
      * Sets the graph generator co-worker
-     * 
+     *
      * @param GM
      */
     public void setGM(GraphGenerator GM) {
@@ -137,7 +137,7 @@ public class TaskAnalyser {
 
     /**
      * Process the dependencies of a new task @currentTask
-     * 
+     *
      * @param currentTask
      */
     public void processTask(Task currentTask) {
@@ -275,7 +275,7 @@ public class TaskAnalyser {
 
     /**
      * Registers the end of execution of task @task
-     * 
+     *
      * @param task
      */
     public void endTask(Task task) {
@@ -343,12 +343,16 @@ public class TaskAnalyser {
 
         // Release data dependent tasks
         task.releaseDataDependents();
+        COMPSsRuntime.TaskMonitor monitor = task.getTaskMonitor();
+        if (monitor != null) {
+            monitor.onCompletion();
+        }
     }
 
     /**
      * Checks if a finished task is the last writer of its file parameters and, eventually, order the necessary
      * transfers
-     * 
+     *
      * @param t
      */
     private void checkResultFileTransfer(Task t) {
@@ -397,7 +401,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the tasks dependent to the requested task
-     * 
+     *
      * @param request
      */
     public void findWaitedTask(WaitForTaskRequest request) {
@@ -433,7 +437,7 @@ public class TaskAnalyser {
 
     /**
      * Barrier
-     * 
+     *
      * @param request
      */
     public void barrier(BarrierRequest request) {
@@ -457,7 +461,7 @@ public class TaskAnalyser {
 
     /**
      * End of execution barrier
-     * 
+     *
      * @param request
      */
     public void noMoreTasks(EndOfAppRequest request) {
@@ -478,7 +482,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the written files and deletes them
-     * 
+     *
      * @param appId
      * @return
      */
@@ -488,7 +492,7 @@ public class TaskAnalyser {
 
     /**
      * Shutdown
-     * 
+     *
      */
     public void shutdown() {
         if (drawGraph) {
@@ -498,7 +502,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the task state
-     * 
+     *
      * @return
      */
     public String getTaskStateRequest() {
@@ -523,7 +527,7 @@ public class TaskAnalyser {
 
     /**
      * Deletes the specified file and its renamings
-     * 
+     *
      * @param fileInfo
      */
     public void deleteFile(FileInfo fileInfo) {
@@ -547,7 +551,7 @@ public class TaskAnalyser {
      **************************************************************************************************************/
     /**
      * Checks the dependencies of a task @currentTask considering the parameter @dp
-     * 
+     *
      * @param currentTask
      * @param dp
      */
@@ -567,17 +571,15 @@ public class TaskAnalyser {
             if (drawGraph) {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId);
             }
-        } else {
-            // Last writer is the main
-            if (drawGraph) {
-                addEdgeFromMainToTask(currentTask, dataId);
-            }
+        } else // Last writer is the main
+        if (drawGraph) {
+            addEdgeFromMainToTask(currentTask, dataId);
         }
     }
 
     /**
      * Registers the output values of the task @currentTask
-     * 
+     *
      * @param currentTask
      * @param dp
      */
@@ -587,7 +589,7 @@ public class TaskAnalyser {
         Long appId = currentTask.getAppId();
         writers.put(dataId, currentTask); // update global last writer
         if (dp.getType() == DataType.FILE_T) { // Objects are not checked, their version will be only get if the main
-                                               // access them
+            // access them
             TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
             if (idsWritten == null) {
                 idsWritten = new TreeSet<>();
@@ -615,7 +617,7 @@ public class TaskAnalyser {
      **************************************************************************************************************/
     /**
      * We have detected a new task, register it into the graph STEPS: Only adds the node
-     * 
+     *
      * @param task
      */
     private void addNewTask(Task task) {
@@ -631,7 +633,7 @@ public class TaskAnalyser {
     /**
      * We will execute a task whose data is produced by another task. STEPS: Add an edge from the previous task or the
      * last synchronization point to the new task
-     * 
+     *
      * @param source
      * @param dest
      * @param dataId
@@ -653,7 +655,7 @@ public class TaskAnalyser {
     /**
      * We will execute a task with no predecessors, data must be retrieved from the last synchronization point. STEPS:
      * Add edge from sync to task
-     * 
+     *
      * @param dest
      * @param dataId
      */
@@ -667,7 +669,7 @@ public class TaskAnalyser {
     /**
      * We have accessed to data produced by a task from the main code STEPS: Adds a new synchronization point if any
      * task has been created Adds a dependency from task to synchronization
-     * 
+     *
      * @param task
      * @param dataId
      */

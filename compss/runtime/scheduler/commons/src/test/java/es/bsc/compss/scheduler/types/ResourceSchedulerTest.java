@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+
 public class ResourceSchedulerTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -96,7 +97,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null, null);
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null, null, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -113,7 +114,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testEmpty() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject("{\"implementations\":{}}"), null);
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null, new JSONObject("{\"implementations\":{}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -130,7 +131,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodB() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -157,7 +158,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodBUpdated() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_AND_UPDATED_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -184,7 +185,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodANullSet() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -221,7 +222,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodASetNull() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -258,7 +259,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodASetSet() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject(
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null, new JSONObject(
                 "{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -286,7 +287,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodAUpdatedNull() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -323,7 +324,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodANullUpdated() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -360,7 +361,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodASetUpdated() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject(
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null, new JSONObject(
                 "{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"), null);
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
@@ -397,7 +398,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testAllSet() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
                         + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
@@ -416,11 +417,11 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testAllSetCopy() {
-        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null,
                 new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
                         + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         JSONObject jo = rs.toJSONObject();
-        rs = new ResourceScheduler<>(worker, jo, null);
+        rs = new ResourceScheduler<>(worker, null, jo, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -479,6 +480,7 @@ public class ResourceSchedulerTest {
             throw new CheckerException("max execution time");
         }
     }
+
 
     private class CheckerException extends Exception {
 

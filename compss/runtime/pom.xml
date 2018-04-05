@@ -39,5 +39,6 @@
 		<module>resources</module>
 		<module>scheduler</module>
 		<module>engine</module>
+		<module>agent</module>
 	</modules>
 </project>
