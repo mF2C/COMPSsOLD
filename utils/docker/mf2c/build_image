@@ -6,6 +6,11 @@ if [ -z $1 ]; then
 	exit 1
 fi
 
+if [ ! -f $1 ]; then
+    echo "File $1 not found!"
+    exit 1
+fi
+
 APP_PATH=`readlink -f $1`
 
 SANDBOX="/tmp/mf2c/container"
