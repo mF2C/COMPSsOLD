@@ -1,17 +1,5 @@
 #!/bin/bash -e
 
-if [ -z $1 ]; then 
-	echo "Usage:"
-	echo "build_image </path/to/app.jar>"; 
-	exit 1
-fi
-
-if [ ! -f $1 ]; then
-    echo "File $1 not found!"
-    exit 1
-fi
-
-APP_PATH=`readlink -f $1`
 
 SANDBOX="/tmp/mf2c/container"
 rm -rf ${SANDBOX}
@@ -19,7 +7,7 @@ mkdir -p ${SANDBOX}
 
 INIT_DIR=`pwd`
 RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cp ${RUNTIME_DIR}/Dockerfile ${SANDBOX}/Dockerfile
+cp ${RUNTIME_DIR}/Dockerfile_runtime ${SANDBOX}/Dockerfile
 
 cd "${RUNTIME_DIR}/../../../compss"
 RUNTIME_DIR=`pwd`
@@ -28,18 +16,15 @@ mvn -DskipTests clean install
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration
-mkdir -p ${SANDBOX}/arrel/root
 
 cp ${RUNTIME_DIR}/runtime/agent/target/compss-agent-2.2.rc1803.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
 cp ${RUNTIME_DIR}/runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar
 cp ${RUNTIME_DIR}/runtime/config/log/COMPSsMaster-log4j.debug ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.debug
 cp ${RUNTIME_DIR}/runtime/config/log/COMPSsMaster-log4j.off ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.off
 
-cp ${APP_PATH} ${SANDBOX}/arrel/root/app.jar
-
 cd ${SANDBOX}
 ls
-docker build -t compss-agent:1.1 .
+docker build -t compss-agent:latest .
 rm -rf ${SANDBOX}
 
 cd ${INIT_DIR}

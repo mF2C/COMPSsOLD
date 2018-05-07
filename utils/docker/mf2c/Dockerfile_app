@@ -1,0 +1,4 @@
+FROM compss-agent:mf2c-1.1
+
+COPY ["arrel", "/"]
+
