@@ -2,7 +2,7 @@
 
 if [ -z $1 ]; then 
 	echo "Usage:"
-	echo "build_image </path/to/app.jar>"; 
+	echo "build_image </path/to/app.jar> <image_name:version>"; 
 	exit 1
 fi
 
@@ -12,7 +12,15 @@ if [ ! -f $1 ]; then
     exit 1
 fi
 
+if [ ! -z $2 ]; then
+    echo "Name or version of the image not present!"
+    echo "Usage:"
+    echo "build_image </path/to/app.jar> <image_name:version>"; 
+    exit 1
+fi
+
 APP_PATH=`readlink -f $1`
+IMAGE_NAME=$2
 
 SANDBOX="/tmp/mf2c/container"
 rm -rf ${SANDBOX}
@@ -28,7 +36,7 @@ cp ${APP_PATH} ${SANDBOX}/arrel/root/app.jar
 
 cd ${SANDBOX}
 ls
-docker build -t compss-test:1.0 .
+docker build -t ${IMAGE_NAME} .
 rm -rf ${SANDBOX}
 
 cd ${INIT_DIR}
