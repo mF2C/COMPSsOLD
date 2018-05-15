@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 
-SANDBOX="/tmp/mf2c/container"
+SANDBOX="/tmp/mf2c_container"
 rm -rf ${SANDBOX}
 mkdir -p ${SANDBOX}
 
@@ -9,18 +9,24 @@ INIT_DIR=`pwd`
 RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cp ${RUNTIME_DIR}/Dockerfile_runtime ${SANDBOX}/Dockerfile
 
-cd "${RUNTIME_DIR}/../../../compss"
+cd "${RUNTIME_DIR}/../../.."
 RUNTIME_DIR=`pwd`
 
+cd compss
 mvn -DskipTests clean install
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration
 
-cp ${RUNTIME_DIR}/runtime/agent/target/compss-agent-2.2.rc1803.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
-cp ${RUNTIME_DIR}/runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar
-cp ${RUNTIME_DIR}/runtime/config/log/COMPSsMaster-log4j.debug ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.debug
-cp ${RUNTIME_DIR}/runtime/config/log/COMPSsMaster-log4j.off ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.off
+cp ${RUNTIME_DIR}/compss/runtime/agent/target/compss-agent-2.2.rc1803.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
+cp ${RUNTIME_DIR}/compss/runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar
+cp ${RUNTIME_DIR}/compss/runtime/config/log/COMPSsMaster-log4j.debug ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.debug
+cp ${RUNTIME_DIR}/compss/runtime/config/log/COMPSsMaster-log4j.off ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.off
+
+
+mkdir -p ${SANDBOX}/arrel/opt/COMPSs/launchers
+cp ${RUNTIME_DIR}/utils/docker/mf2c/launch.sh ${SANDBOX}/arrel/opt/COMPSs/launchers/launch.sh
+cp ${RUNTIME_DIR}/utils/docker/mf2c/launch_dataclay.sh ${SANDBOX}/arrel/opt/COMPSs/launchers/launch_dataclay.sh
 
 cd ${SANDBOX}
 ls

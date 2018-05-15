@@ -18,13 +18,7 @@ RUN apt-get update && \
     cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 
 COPY ["arrel", "/"]
-ENV MF2C_HOST=localhost DEBUG=off
+ENV MF2C_HOST=localhost DEBUG=off 
 
-CMD export COMPSS_HOME=/opt/COMPSs && \
-    java \
-        -DCOMPSS_HOME=/opt/COMPSs \
-        -cp /root/app.jar:/opt/COMPSs/Runtime/compss-agent.jar \
-        -Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.$DEBUG \
-        -DMF2C_HOST=$MF2C_HOST \
-        es.bsc.compss.agent.Agent \
-        46100
+CMD /opt/COMPSs/launchers/launch.sh -h ${MF2C_HOST} -d ${DEBUG}
+
