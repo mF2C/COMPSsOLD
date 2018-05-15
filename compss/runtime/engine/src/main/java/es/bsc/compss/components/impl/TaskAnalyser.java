@@ -144,7 +144,7 @@ public class TaskAnalyser {
         TaskDescription params = currentTask.getTaskDescription();
         LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
-
+        System.out.println("[Task Analyzer] NEW TASK " + params.getName() + "), ID = " + currentTask.getId());
         if (drawGraph) {
             addNewTask(currentTask);
         }
@@ -188,6 +188,7 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("* Parameter : " + p);
             }
+            System.out.println("[Task Analyzer]     * Parameter : " + p);
 
             // Conversion: direction -> access mode
             AccessMode am = AccessMode.R;
@@ -211,6 +212,7 @@ public class TaskAnalyser {
                     daId = DIP.registerFileAccess(am, fp.getLocation());
                     break;
                 case PSCO_T:
+                    System.out.println("[Task Analyzer]         Es un PSCO_T ja persistit");
                     ObjectParameter pscop = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     pscop.setType(DataType.PSCO_T);
@@ -226,6 +228,7 @@ public class TaskAnalyser {
                     ObjectParameter op = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
+                        System.out.println("[Task Analyzer]         Es un PSCO_T camuflat amb ID " + ((StubItf) op.getValue()).getID());
                         op.setType(DataType.PSCO_T);
                     }
                     daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode());
@@ -572,8 +575,10 @@ public class TaskAnalyser {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId);
             }
         } else // Last writer is the main
-        if (drawGraph) {
-            addEdgeFromMainToTask(currentTask, dataId);
+        {
+            if (drawGraph) {
+                addEdgeFromMainToTask(currentTask, dataId);
+            }
         }
     }
 

@@ -59,6 +59,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.client.ClientConfig;
+import storage.StorageException;
+import storage.StorageItf;
 
 
 @Path("/COMPSs")
@@ -73,6 +75,28 @@ public class Agent {
     private static final Client client = ClientBuilder.newClient(config);
 
     static {
+
+        String DC_CONF_PATH = System.getProperty("dataclay.configpath");
+        System.out.println("DataClay configuration: " + DC_CONF_PATH);
+        if (DC_CONF_PATH != null) {
+            try {
+                StorageItf.init(DC_CONF_PATH);
+            } catch (StorageException se) {
+                se.printStackTrace(System.err);
+                System.err.println("Continuing...");
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    StorageItf.finish();
+                } catch (StorageException se) {
+                    se.printStackTrace(System.err);
+                    System.err.println("Continuing...");
+                }
+            }
+        });
+
         RUNTIME = new COMPSsRuntimeImpl();
         RUNTIME.startIT();
         RUNTIME.registerCoreElement(
@@ -105,6 +129,7 @@ public class Agent {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startApplication(StartApplicationRequest request) {
+        System.out.println("[AGENT] Received new request:\n" + request.toString());
         if (request.getResources() == null || request.getResources().length == 0) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Empty list of resources to host the execution.").build();
         }
@@ -147,9 +172,9 @@ public class Agent {
         Object[] params;
         try {
             params = request.getParamsValuesContent();
-        } catch (ClassNotFoundException cnfe) {
+        } catch (Exception cnfe) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
-                    "Could not find a class to build the input parameters. " + cnfe.getLocalizedMessage()
+                    "Could not recover an input parameter value. " + cnfe.getLocalizedMessage()
             ).build();
         }
 
@@ -266,7 +291,16 @@ public class Agent {
             StringBuilder typesSB = new StringBuilder();
 
             ApplicationParameter[] sarParams = request.getParams();
-            Object[] params = new Object[5 * sarParams.length];
+
+            int paramsCount = sarParams.length;
+            if (request.getTarget() != null) {
+                paramsCount++;
+            }
+            if (request.isHasResult()) {
+                paramsCount++;
+            }
+
+            Object[] params = new Object[5 * paramsCount];
             int position = 0;
             for (ApplicationParameter param : sarParams) {
                 if (typesSB.length() > 0) {
@@ -280,6 +314,26 @@ public class Agent {
                 params[position + 4] = "";
                 position += 5;
             }
+
+            if (request.getTarget() != null) {
+                ApplicationParameter targetParam = request.getTarget();
+                params[position] = null;
+                params[position + 1] = targetParam.getType();
+                params[position + 2] = targetParam.getDirection();
+                params[position + 3] = Stream.UNSPECIFIED;
+                params[position + 4] = "";
+                position += 5;
+            }
+
+            if (request.isHasResult()) {
+                params[position] = null;
+                params[position + 1] = DataType.OBJECT_T;
+                params[position + 2] = Direction.OUT;
+                params[position + 3] = Stream.UNSPECIFIED;
+                params[position + 4] = "";
+                position += 5;
+            }
+
             String paramsTypes = typesSB.toString();
 
             RUNTIME.registerCoreElement(
@@ -298,8 +352,8 @@ public class Agent {
                     className,
                     methodName,
                     false,
-                    false,
-                    sarParams.length, params
+                    request.getTarget() != null,
+                    paramsCount, params
             );
 
         } catch (Exception e) {
@@ -335,20 +389,75 @@ public class Agent {
     }
 
 
-    private static class TaskMonitor implements COMPSsRuntime.TaskMonitor {
+    private static abstract class AppMonitor implements COMPSsRuntime.TaskMonitor {
 
         private final long appId;
         private final DynamicMethodWorker masterNode;
         private final List<DynamicMethodWorker> workerNodes;
+
+        public AppMonitor(long appId, DynamicMethodWorker masterNode, List<DynamicMethodWorker> workerNodes) {
+            this.appId = appId;
+            this.masterNode = masterNode;
+            this.workerNodes = workerNodes;
+        }
+
+        public long getAppId() {
+            return this.appId;
+        }
+
+        public DynamicMethodWorker getMasterNode() {
+            return masterNode;
+        }
+
+        public List<DynamicMethodWorker> getWorkerNodes() {
+            return workerNodes;
+        }
+
+        @Override
+        public abstract void onCreation();
+
+        @Override
+        public abstract void onAccessesProcess();
+
+        @Override
+        public abstract void onSchedule();
+
+        @Override
+        public abstract void onSubmission();
+
+        @Override
+        public abstract void onErrorExecution();
+
+        @Override
+        public abstract void onFailedExecution();
+
+        @Override
+        public abstract void onSuccesfulExecution();
+
+        @Override
+        public void onCompletion() {
+            for (DynamicMethodWorker workerNode : workerNodes) {
+                ResourceManager.reduceWholeWorker(workerNode);
+            }
+            if (masterNode != null) {
+                ResourceManager.reduceWholeWorker(masterNode);
+            }
+        }
+
+    }
+
+
+    private static class TaskMonitor extends AppMonitor {
+
         private final Orchestrator orchestrator;
         private boolean successful;
 
-        public TaskMonitor(long appId, DynamicMethodWorker masterNode, List<DynamicMethodWorker> workerNodes, Orchestrator orchestrator) {
-            this.successful = false;
-            this.appId = appId;
+        public TaskMonitor(
+                long appId,
+                DynamicMethodWorker masterNode, List<DynamicMethodWorker> workerNodes, Orchestrator orchestrator) {
+            super(appId, masterNode, workerNodes);
             this.orchestrator = orchestrator;
-            this.masterNode = masterNode;
-            this.workerNodes = workerNodes;
+            this.successful = false;
         }
 
         @Override
@@ -373,6 +482,7 @@ public class Agent {
 
         @Override
         public void onFailedExecution() {
+            successful = false;
         }
 
         @Override
@@ -383,23 +493,18 @@ public class Agent {
         @Override
         public void onCompletion() {
             try {
-                for (DynamicMethodWorker workerNode : workerNodes) {
-                    ResourceManager.reduceWholeWorker(workerNode);
-                }
-                if (masterNode != null) {
-                    ResourceManager.reduceWholeWorker(masterNode);
-                }
                 if (orchestrator != null) {
                     String masterId = orchestrator.getHost();
                     String operation = orchestrator.getOperation();
                     WebTarget target = client.target(masterId);
                     WebTarget wt = target.path(operation);
-                    EndApplicationNotification ean = new EndApplicationNotification("" + appId, successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED);
+                    EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(), successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED);
+
                     Response response = wt
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.xml(ean), Response.class);
                     if (response.getStatusInfo().getStatusCode() != 200) {
-                        System.err.println("Could not notify Application " + appId + " end to " + wt);
+                        System.err.println("Could not notify Application " + getAppId() + " end to " + wt);
                     }
                 }
             } catch (Exception e) {
@@ -409,7 +514,7 @@ public class Agent {
     }
 
 
-    private static class MasterTaskMonitor extends TaskMonitor {
+    private static class MasterTaskMonitor extends AppMonitor {
 
         private final TaskProfile profile;
         private final String serviceInstanceId;
@@ -423,7 +528,7 @@ public class Agent {
                 List<DynamicMethodWorker> workerNodes,
                 Orchestrator orchestrator
         ) {
-            super(appId, masterNode, workerNodes, orchestrator);
+            super(appId, masterNode, workerNodes);
             this.serviceInstanceId = serviceInstanceId;
             this.operation = operation;
             this.profile = new TaskProfile();
@@ -431,43 +536,36 @@ public class Agent {
 
         @Override
         public void onCreation() {
-            super.onCreation();
             profile.created();
         }
 
         @Override
         public void onAccessesProcess() {
-            super.onAccessesProcess();
             profile.processedAccesses();
         }
 
         @Override
         public void onSchedule() {
-            super.onSchedule();
             profile.scheduled();
         }
 
         @Override
         public void onSubmission() {
-            super.onSubmission();
             profile.submitted();
         }
 
         @Override
         public void onErrorExecution() {
-            super.onErrorExecution();
             profile.finished();
         }
 
         @Override
         public void onFailedExecution() {
-            super.onFailedExecution();
             profile.finished();
         }
 
         @Override
         public void onSuccesfulExecution() {
-            super.onFailedExecution();
             profile.finished();
         }
 

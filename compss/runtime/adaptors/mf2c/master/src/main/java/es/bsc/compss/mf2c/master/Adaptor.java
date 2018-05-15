@@ -86,7 +86,7 @@ public class Adaptor implements CommAdaptor {
         }
 
         if (hostName.equals(localHostName) || hostName.equals("localhost")) {
-            return new LocalAgent(workerName, ac);
+            return new LocalAgent(hostName, ac);
         } else {
             return new RemoteAgent(hostName, ac);
         }

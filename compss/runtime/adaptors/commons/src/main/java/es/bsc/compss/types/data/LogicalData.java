@@ -210,6 +210,7 @@ public class LogicalData {
      * @param loc
      */
     public synchronized void addLocation(DataLocation loc) {
+        System.out.println("[DATA] Adding location " + loc + " to " + name);
         this.isBeingSaved = false;
         this.locations.add(loc);
         switch (loc.getType()) {
@@ -266,6 +267,7 @@ public class LogicalData {
      * @param id
      */
     public synchronized void setId(String id) {
+        System.out.println("[DATA] setting PSCO Id " + id + " to " + getName());
         this.id = id;
     }
 

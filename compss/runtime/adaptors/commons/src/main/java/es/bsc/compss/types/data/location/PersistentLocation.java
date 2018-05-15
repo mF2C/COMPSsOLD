@@ -31,7 +31,6 @@ public class PersistentLocation extends DataLocation {
 
     private final String id;
 
-
     public PersistentLocation(String id) {
         super();
         this.id = id;
@@ -80,8 +79,8 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public List<Resource> getHosts() {
-        LOGGER.debug("Get PSCO locations for " + this.id);
 
+        LOGGER.debug("Get PSCO locations for " + this.id);
         // Retrieve locations from Back-end
         List<String> locations = null;
         try {

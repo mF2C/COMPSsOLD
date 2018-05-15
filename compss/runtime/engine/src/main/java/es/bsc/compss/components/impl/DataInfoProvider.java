@@ -70,10 +70,9 @@ public class DataInfoProvider {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-
     /**
      * New Data Info Provider instance
-     * 
+     *
      */
     public DataInfoProvider() {
         nameToId = new TreeMap<>();
@@ -86,7 +85,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new data access
-     * 
+     *
      * @param access
      * @return
      */
@@ -102,7 +101,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new file access
-     * 
+     *
      * @param mode
      * @param location
      * @return
@@ -138,41 +137,43 @@ public class DataInfoProvider {
         // Version management
         return willAccess(mode, fileInfo);
     }
-    
+
     public void finishFileAccess(AccessMode mode, DataLocation location) {
-    	DataInfo fileInfo;
+        DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
 
         // First access to this file
         if (fileId == null) {
-               LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
-               return;
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            return;
         }
         fileInfo = idToData.get(fileId);
         DataAccessId daid = getAccess(mode, fileInfo);
-        if (daid == null){
-        	LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+        if (daid == null) {
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
             return;
         }
         dataHasBeenAccessed(daid);
-               
+
     }
-    	
+
     /**
      * DataAccess interface: registers a new object access
-     * 
+     *
      * @param mode
      * @param value
      * @param code
      * @return
      */
     public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code) {
+        System.out.println("[Task Analyzer]         Registering object access on " + value + " (" + code + ") as " + mode);
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
         // First access to this datum
         if (aoId == null) {
+            System.out.println("[Task Analyzer]             First access to the object");
             if (DEBUG) {
                 LOGGER.debug("FIRST access to object " + code);
             }
@@ -180,6 +181,7 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
+            System.out.println("[Task Analyzer]             Assigned id " + aoId + " to the object");
             codeToId.put(code, aoId);
             idToData.put(aoId, oInfo);
 
@@ -189,7 +191,9 @@ public class DataInfoProvider {
 
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
-                Comm.registerValue(renaming, value);
+                System.out.println("[Task Analyzer]             Registering data " + renaming + " -> " + value);
+                LogicalData ld = Comm.registerValue(renaming, value);
+                System.out.println("[Task Analyzer]             ID:"+ ld.getId());
             }
         } else {
             // The datum has already been accessed
@@ -206,7 +210,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new object access
-     * 
+     *
      * @param mode
      * @param value
      * @param code
@@ -295,42 +299,48 @@ public class DataInfoProvider {
                             .append("\n");
                     LOGGER.debug(sb.toString());
                 }
+                StringBuilder sb = new StringBuilder("");
+                sb.append("[Task Analyzer]                  ").append("Access:").append("\n");
+                sb.append("[Task Analyzer]                  ").append("  * Type: RW").append("\n");
+                sb.append("[Task Analyzer]                  ").append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getRVersionId()).append("\n");
+                sb.append("[Task Analyzer]                  ").append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getWVersionId()).append("\n");
+                System.out.println(sb.toString());
                 break;
         }
         return daId;
     }
-    
+
     private DataAccessId getAccess(AccessMode mode, DataInfo di) {
         // Version management
         DataAccessId daId = null;
         DataVersion currentInstance = di.getCurrentDataVersion();
-        if (currentInstance!=null){
-        	switch (mode) {
-            	case R:
-            		daId = new RAccessId(currentInstance);
-            		break;
+        if (currentInstance != null) {
+            switch (mode) {
+                case R:
+                    daId = new RAccessId(currentInstance);
+                    break;
 
-            	case W:
-            		daId = new WAccessId(di.getCurrentDataVersion());
-            		break;
-            	case RW:
-            		DataVersion readInstance = di.getPreviousDataVersion();
-            		if (readInstance !=null){
-            			daId = new RWAccessId(readInstance, currentInstance);
-            		}else{
-            			LOGGER.warn("Previous instance for data" + di.getDataId() + " is null." );
-            		}
-            		break;
-        	}
-        }else{
-        	LOGGER.warn("Current instance for data" + di.getDataId() + " is null." );
+                case W:
+                    daId = new WAccessId(di.getCurrentDataVersion());
+                    break;
+                case RW:
+                    DataVersion readInstance = di.getPreviousDataVersion();
+                    if (readInstance != null) {
+                        daId = new RWAccessId(readInstance, currentInstance);
+                    } else {
+                        LOGGER.warn("Previous instance for data" + di.getDataId() + " is null.");
+                    }
+                    break;
+            }
+        } else {
+            LOGGER.warn("Current instance for data" + di.getDataId() + " is null.");
         }
         return daId;
     }
 
     /**
      * Returns if a given data has been accessed or not
-     * 
+     *
      * @param dAccId
      */
     public void dataHasBeenAccessed(DataAccessId dAccId) {
@@ -363,7 +373,7 @@ public class DataInfoProvider {
 
     /**
      * Returns if a given location has been accessed or not
-     * 
+     *
      * @param loc
      * @return
      */
@@ -376,7 +386,7 @@ public class DataInfoProvider {
 
     /**
      * DataInformation interface: returns the last renaming of a given data
-     * 
+     *
      * @param code
      * @return
      */
@@ -388,7 +398,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the original location of a data id
-     * 
+     *
      * @param fileId
      * @return
      */
@@ -399,7 +409,7 @@ public class DataInfoProvider {
 
     /**
      * Sets the value @value to the renaming @renaming
-     * 
+     *
      * @param renaming
      * @param value
      */
@@ -410,7 +420,7 @@ public class DataInfoProvider {
 
     /**
      * Returns if the dataInstanceId is registered in the master or not
-     * 
+     *
      * @param dId
      * @return
      */
@@ -420,7 +430,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the object associated to the renaming @renaming
-     * 
+     *
      * @param renaming
      * @return
      */
@@ -430,7 +440,7 @@ public class DataInfoProvider {
 
     /**
      * Creates a new version with the same value
-     * 
+     *
      * @param rRenaming
      * @param wRenaming
      */
@@ -440,7 +450,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the last data access to a given renaming
-     * 
+     *
      * @param code
      * @return
      */
@@ -452,7 +462,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the last versions of all the specified data Ids
-     * 
+     *
      * @param dataIds
      * @return
      */
@@ -471,7 +481,7 @@ public class DataInfoProvider {
 
     /**
      * Unblocks a dataId
-     * 
+     *
      * @param dataId
      */
     public void unblockDataId(Integer dataId) {
@@ -481,7 +491,7 @@ public class DataInfoProvider {
 
     /**
      * Marks a data Id for deletion
-     * 
+     *
      * @param loc
      * @return
      */
@@ -502,7 +512,7 @@ public class DataInfoProvider {
 
     /**
      * Transfers the value of an object
-     * 
+     *
      * @param toRequest
      * @return
      */
@@ -559,7 +569,7 @@ public class DataInfoProvider {
 
     /**
      * Blocks dataId and retrieves its result file
-     * 
+     *
      * @param dataId
      * @param listener
      * @return
@@ -568,7 +578,7 @@ public class DataInfoProvider {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-                                                                        // transfer
+            // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
@@ -637,7 +647,7 @@ public class DataInfoProvider {
 
     /**
      * Shuts down the component
-     * 
+     *
      */
     public void shutdown() {
         // Nothing to do

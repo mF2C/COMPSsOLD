@@ -36,6 +36,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
 
 public class RemoteAgentJob extends AgentJob<RemoteAgent> {
@@ -62,10 +64,13 @@ public class RemoteAgentJob extends AgentJob<RemoteAgent> {
 
     @Override
     public void submit() throws Exception {
+        System.out.println("Preparing to submit new Task");
         StartApplicationRequest sar = new StartApplicationRequest();
 
         WebTarget wt = getExecutor().getTarget();
         wt = wt.path("/COMPSs/startApplication/");
+
+        System.out.println("    Execution Agent: " + wt.getUri().toString());
 
         MethodImplementation mImpl = (MethodImplementation) this.impl;
         // Get method definition properties
@@ -76,21 +81,26 @@ public class RemoteAgentJob extends AgentJob<RemoteAgent> {
             methodName = taskParams.getName();
             mImpl.setAlternativeMethodName(taskParams.getName());
         }
-
         sar.setClassName(className);
         sar.setMethodName(methodName);
         sar.setCeiClass(null); //It is a task and we are not supporting Nested parallelism yet
+        System.out.println("    Task Code: " + methodName + "@" + className);
 
         Parameter[] params = taskParams.getParameters();
         int numParams = params.length;
+
         boolean hasReturn = taskParams.hasReturnValue();
         Object retValue = null;
+        boolean hasTarget = taskParams.hasTargetObject();
+        Object target = null;
+
+        
+        
         if (hasReturn) {
+            sar.setHasResult(true);
             numParams--;
         }
 
-        boolean hasTarget = taskParams.hasTargetObject();
-        Object target = null;
         if (hasTarget) {
             numParams--;
             Parameter param = params[numParams];
@@ -114,23 +124,32 @@ public class RemoteAgentJob extends AgentJob<RemoteAgent> {
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 
+        System.out.println("    Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
+            System.out.println("        * Parameter " + parIdx + ": ");
             Parameter param = params[parIdx];
             DataType type = param.getType();
-            Class<?> valueType = null;
-            Object value = null;
+            System.out.println("            Type " + type);
             switch (type) {
                 case FILE_T:
                 case OBJECT_T:
-                case PSCO_T:
                 case EXTERNAL_OBJECT_T:
-                    throw new UnsupportedOperationException("DependencyParameters not supported yet");
+                    throw new UnsupportedOperationException("Non-persisted DependencyParameters are not supported yet");
+                case PSCO_T:
+                    DependencyParameter dPar = (DependencyParameter) param;
+                    Object value;
+                    DataAccessId dAccId = dPar.getDataAccessId();
+                    System.out.println("            Access " + dAccId);
+                    value = dPar.getDataTarget();
+                    System.out.println("            ID " + value);
+                    sar.addPersistedParameter((String) value, param.getDirection());
+                    break;
                 default:
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     value = btParB.getValue();
-                    valueType = value.getClass();
+                    System.out.println("            Value " + value);
+                    sar.addParameter(btParB, value);
             }
-            sar.addParameter(value);
         }
 
         Resource r = new Resource();
@@ -138,7 +157,12 @@ public class RemoteAgentJob extends AgentJob<RemoteAgent> {
         r.setDescription((MethodResourceDescription) impl.getRequirements());
         sar.setResources(new Resource[]{r});
         sar.setOrchestrator(MF2C_LOCALHOST_RESOURCE, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
-        
+
+        JAXBContext jaxbContext = JAXBContext.newInstance(StartApplicationRequest.class);
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        jaxbMarshaller.marshal(sar, System.out);
+
         Response response = wt
                 .request(MediaType.APPLICATION_JSON)
                 .put(Entity.xml(sar), Response.class);

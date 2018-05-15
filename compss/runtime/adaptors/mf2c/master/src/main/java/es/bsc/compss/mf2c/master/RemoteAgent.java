@@ -23,6 +23,8 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.operation.copy.DeferredCopy;
+import es.bsc.compss.types.data.operation.copy.StorageCopy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
@@ -72,10 +74,20 @@ public class RemoteAgent extends Agent {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        System.out.println("obtaining Data ");
-        System.out.println("\t Logical Data: " + ld);
-        System.out.println("\t Data Source: " + source);
-        System.out.println("\t Data Target: " + target);
-        System.out.println("\t Target Data: " + tgtData);
+        if (ld == null) {
+            return;
+        }
+        System.out.println("[STAGE IN] Placing data " + ld.getName() + " as " + target);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
+        }
+
+        // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
+        if (ld.getId() != null) {
+            orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+        } else {
+            listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener), new Exception("Regular objects are not supported yet"));
+        }
     }
+
 }

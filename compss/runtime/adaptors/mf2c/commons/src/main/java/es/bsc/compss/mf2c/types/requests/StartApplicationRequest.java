@@ -19,9 +19,11 @@ package es.bsc.compss.mf2c.types.requests;
 import es.bsc.compss.mf2c.types.ApplicationParameter;
 import es.bsc.compss.mf2c.types.ApplicationParameterValue;
 import es.bsc.compss.mf2c.types.ApplicationParameterValue.ArrayParameter;
+import es.bsc.compss.mf2c.types.ApplicationParameterValue.ElementParameter;
 import es.bsc.compss.mf2c.types.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.parameter.Parameter;
 import java.io.Serializable;
 import java.util.Arrays;
 import javax.xml.bind.annotation.XmlElement;
@@ -38,6 +40,8 @@ public class StartApplicationRequest implements Serializable {
     private String className;
     private String methodName;
     private ApplicationParameter[] params = new ApplicationParameter[0];
+    private ApplicationParameter target;
+    private boolean hasResult;
     private Resource[] resources;
     private Orchestrator orchestrator;
 
@@ -88,6 +92,50 @@ public class StartApplicationRequest implements Serializable {
         this.methodName = methodName;
     }
 
+    public ApplicationParameter getTarget() {
+        return target;
+    }
+
+    public void setTarget(ApplicationParameter target) {
+        this.target = target;
+    }
+
+    public void addParameter(boolean value) {
+        addParameter(value, Direction.IN, DataType.BOOLEAN_T);
+    }
+
+    public void addParameter(byte value) {
+        addParameter(value, Direction.IN, DataType.BYTE_T);
+    }
+
+    public void addParameter(char value) {
+        addParameter(value, Direction.IN, DataType.CHAR_T);
+    }
+
+    public void addParameter(short value) {
+        addParameter(value, Direction.IN, DataType.SHORT_T);
+    }
+
+    public void addParameter(int value) {
+        addParameter(value, Direction.IN, DataType.INT_T);
+    }
+
+    public void addParameter(long value) {
+        addParameter(value, Direction.IN, DataType.LONG_T);
+    }
+
+    public void addParameter(float value) {
+        addParameter(value, Direction.IN, DataType.FLOAT_T);
+    }
+
+    public void addParameter(double value) {
+        addParameter(value, Direction.IN, DataType.DOUBLE_T);
+    }
+
+    public void addParameter(String value) {
+        addParameter(value, Direction.IN, DataType.STRING_T);
+    }
+
     public void addParameter(Object value) {
         addParameter(value, Direction.IN);
     }
@@ -96,7 +144,20 @@ public class StartApplicationRequest implements Serializable {
         addParameter(value, Direction.IN, DataType.OBJECT_T);
     }
 
-    public void addParameter(Object value, Direction direction, DataType type) {
+    public void addPersistedParameter(String id) {
+        addPersistedParameter(id, Direction.IN);
+    }
+
+    public void addPersistedParameter(String id, Direction direction) {
+        ApplicationParameter p = addParameter(id, direction, DataType.PSCO_T);
+        ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
+    }
+
+    public void addParameter(Parameter p, Object value) {
+        addParameter(value, p.getDirection(), p.getType());
+    }
+
+    private ApplicationParameter addParameter(Object value, Direction direction, DataType type) {
         ApplicationParameter p = new ApplicationParameter(value, direction, type);
         p.setParamId(params.length);
 
@@ -106,6 +167,7 @@ public class StartApplicationRequest implements Serializable {
             System.arraycopy(oldParams, 0, params, 0, oldParams.length);
         }
         params[oldParams.length] = p;
+        return p;
     }
 
     @XmlElementWrapper(name = "parameters")
@@ -127,14 +189,22 @@ public class StartApplicationRequest implements Serializable {
         return paramValues;
     }
 
-    public Object[] getParamsValuesContent() throws ClassNotFoundException {
+    public Object[] getParamsValuesContent() throws Exception {
         int paramsCount = params.length;
         Object[] paramValues = new Object[paramsCount];
         for (ApplicationParameter param : params) {
             int paramIdx = param.getParamId();
-            paramValues[paramIdx] = param.getValue().getValue();
+            paramValues[paramIdx] = param.getValue().getContent();
         }
         return paramValues;
+    }
+
+    public void setHasResult(boolean hasResult) {
+        this.hasResult = hasResult;
+    }
+
+    public boolean isHasResult() {
+        return hasResult;
     }
 
     @Override
@@ -146,16 +216,16 @@ public class StartApplicationRequest implements Serializable {
                 .append(methodName)
                 .append("(");
 
+        int count = 0;
         for (ApplicationParameter param : this.params) {
+            if (count > 0) {
+                sb.append(", ");
+                count++;
+            }
             if (param.getValue() instanceof ArrayParameter) {
-                sb.append("(").append(param.getType()).append(") XXXXX");
+                sb.append(param.getType());
             } else {
-                sb.append("(").append(param.getType()).append(") ");
-                try {
-                    sb.append(param.getValue());
-                } catch (Exception e) {
-                    sb.append("XXXXXXXXX");
-                }
+                sb.append(param.getType());
             }
         }
         sb.append(") defined in CEI ").append(ceiClass).append(" using ").append(Arrays.toString(resources));

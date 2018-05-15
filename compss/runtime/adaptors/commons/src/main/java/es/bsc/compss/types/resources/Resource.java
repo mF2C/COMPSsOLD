@@ -69,7 +69,6 @@ public abstract class Resource implements Comparable<Resource> {
         SERVICE // For services
     }
 
-
     // Log and debug
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
@@ -83,7 +82,6 @@ public abstract class Resource implements Comparable<Resource> {
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
-
 
     public Resource(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;

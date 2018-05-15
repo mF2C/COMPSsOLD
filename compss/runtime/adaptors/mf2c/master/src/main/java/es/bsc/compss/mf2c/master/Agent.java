@@ -28,6 +28,13 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.mf2c.master.configuration.AgentConfiguration;
+import static es.bsc.compss.types.COMPSsNode.DEBUG;
+import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.operation.copy.StorageCopy;
+import java.util.LinkedList;
+import java.util.List;
+import storage.StorageException;
+import storage.StorageItf;
 
 
 public abstract class Agent extends COMPSsWorker {
@@ -137,4 +144,105 @@ public abstract class Agent extends COMPSsWorker {
         return "";
     }
 
+    protected void orderStorageCopy(StorageCopy sc) {
+        LOGGER.info("Order PSCO Copy for " + sc.getSourceData().getName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("LD Target " + sc.getTargetData());
+            LOGGER.debug("FROM: " + sc.getPreferredSource());
+            LOGGER.debug("TO: " + sc.getTargetLoc());
+            LOGGER.debug("MUST PRESERVE: " + sc.mustPreserveSourceData());
+        }
+
+        LogicalData source = sc.getSourceData();
+        LogicalData target = sc.getTargetData();
+        if (target != null) {
+            if (target.getName().equals(source.getName())) {
+                // The source and target are the same --> IN
+                newReplica(sc);
+            } else {
+                // The source and target are different --> OUT
+                newVersion(sc);
+            }
+        } else {
+            // Target doesn't exist yet --> INOUT
+            newVersion(sc);
+        }
+    }
+
+    private void newReplica(StorageCopy sc) {
+        String targetHostname = this.getName();
+        LogicalData srcLD = sc.getSourceData();
+        LogicalData targetLD = sc.getTargetData();
+
+        System.out.println("[STAGE IN] Requesting Storage to place a new replica of " + srcLD.getId() + " on " + targetHostname + ")");
+        LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
+
+        // Get the PSCO to replicate
+        String pscoId = srcLD.getId();
+
+        // Get the current locations
+        List<String> currentLocations = new LinkedList<>();
+        try {
+            currentLocations = StorageItf.getLocations(pscoId);
+        } catch (StorageException se) {
+            // Cannot obtain current locations from back-end
+            sc.end(DataOperation.OpEndState.OP_FAILED, se);
+            return;
+        }
+
+        if (!currentLocations.contains(targetHostname)) {
+            // Perform replica
+            LOGGER.debug("Performing new replica for PSCO " + pscoId);
+            try {
+                // TODO: WARN New replica is NOT necessary because we can't prefetch data
+                // StorageItf.newReplica(pscoId, targetHostname);
+            } finally {
+            }
+        } else {
+            LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
+        }
+
+        // Update information
+        sc.setFinalTarget(pscoId);
+        if (targetLD != null) {
+            targetLD.setId(pscoId);
+        }
+
+        // Notify successful end
+        sc.end(DataOperation.OpEndState.OP_OK);
+    }
+
+    private void newVersion(StorageCopy sc) {
+
+        String targetHostname = this.getName();
+        LogicalData srcLD = sc.getSourceData();
+        LogicalData targetLD = sc.getTargetData();
+        boolean preserveSource = sc.mustPreserveSourceData();
+
+        System.out.println("[STAGE IN] Requesting Storage to create a new Version of " + srcLD.getId() + "(" + srcLD.getName() + ")");
+        if (DEBUG) {
+            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname
+                    + " with must preserve " + preserveSource);
+        }
+
+        // Get the PSCOId to replicate
+        String pscoId = srcLD.getId();
+
+        // Perform version
+        LOGGER.debug("Performing new version for PSCO " + pscoId);
+        try {
+            String newId = StorageItf.newVersion(pscoId, preserveSource, Comm.getAppHost().getName());
+            LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
+            sc.setFinalTarget(newId);
+            if (targetLD != null) {
+                targetLD.setId(newId);
+            }
+        } catch (Exception e) {
+            sc.end(DataOperation.OpEndState.OP_FAILED, e);
+            return;
+        }
+
+        // Notify successful end
+        sc.end(DataOperation.OpEndState.OP_OK);
+    }
 }

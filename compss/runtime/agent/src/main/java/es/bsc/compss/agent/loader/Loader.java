@@ -22,6 +22,7 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
+import es.bsc.compss.util.CoreManager;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -69,7 +70,7 @@ public class Loader {
             appClass.defrost();
 
             runtime.startIT(ceiClass);
-
+            
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[]{
                         Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),

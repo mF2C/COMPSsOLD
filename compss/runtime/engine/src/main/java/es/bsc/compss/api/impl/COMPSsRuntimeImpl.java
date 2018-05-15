@@ -703,7 +703,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     private int executeTask(Long appId, TaskMonitor monitor, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
-
+        
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());

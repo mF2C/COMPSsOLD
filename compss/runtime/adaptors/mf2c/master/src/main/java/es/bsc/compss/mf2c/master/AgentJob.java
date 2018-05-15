@@ -50,4 +50,5 @@ public abstract class AgentJob<T extends Agent> extends Job<T> {
     public String toString() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }

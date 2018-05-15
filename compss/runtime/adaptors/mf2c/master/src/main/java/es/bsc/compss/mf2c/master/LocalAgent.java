@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.mf2c.master;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.mf2c.master.configuration.AgentConfiguration;
 import es.bsc.compss.types.TaskDescription;
@@ -24,6 +23,8 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.operation.copy.StorageCopy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
@@ -31,6 +32,7 @@ import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import java.io.IOException;
@@ -74,47 +76,56 @@ public class LocalAgent extends Agent {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        /*
-         * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
-         */
-        for (DataLocation loc : ld.getLocations()) {
-            if (loc.getProtocol().equals(DataLocation.Protocol.PERSISTENT_URI)) {
-                LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
-                reason.setDataTarget(loc.getPath());
+        if (ld == null) {
+            return;
+        }
+
+        System.out.println("[STAGE IN] Placing data " + ld.getName() + " as " + target);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
+        }
+
+        // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
+        if (ld.getId() != null) {
+            System.out.println("[STAGE IN]     Using persistent storage to copy " + reason.getType() + " parameter");
+            orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+        } else {
+            System.out.println("[STAGE IN]     Ordenant la còpia d'un Objecte normal");
+            /*
+             * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
+             * being transfered
+             */
+            String targetPath = "";
+            for (MultiURI mu : target.getURIs()) {
+                if (mu.getHost().getNode() == this) {
+                    targetPath = mu.getPath();
+                }
+            }
+
+            // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
+            if (ld.isInMemory()) {
+                if (tgtData != ld) {
+                    // Serialize value to file
+                    try {
+                        Serializer.serialize(ld.getValue(), targetPath);
+                    } catch (IOException ex) {
+                        ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
+                    }
+
+                    if (tgtData != null) {
+                        tgtData.addLocation(target);
+                    }
+                }
+                LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
+                System.out.println("Setting " + reason + "'s source on " + source);
+
+                reason.setDataSource(source);
+                reason.setDataTarget(targetPath);
                 listener.notifyEnd(null);
                 return;
+            } else {
+                System.out.println("[STAGE IN]     Object not in memory. We **** up!!!!");
             }
-        }
-
-        /*
-         * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
-         * being transfered
-         */
-        String targetPath = "";
-        for (MultiURI mu : target.getURIs()) {
-            if (mu.getHost().getNode()==this){
-                targetPath=mu.getPath();
-            }
-        }
-
-        // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
-        if (ld.isInMemory()) {
-            if (tgtData != ld) {
-                // Serialize value to file
-                try {
-                    Serializer.serialize(ld.getValue(), targetPath);
-                } catch (IOException ex) {
-                    ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
-                }
-
-                if (tgtData != null) {
-                    tgtData.addLocation(target);
-                }
-            }
-            LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
-            reason.setDataTarget(targetPath);
-            listener.notifyEnd(null);
-            return;
         }
     }
 

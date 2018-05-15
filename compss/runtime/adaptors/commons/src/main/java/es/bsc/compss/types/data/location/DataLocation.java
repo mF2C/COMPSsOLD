@@ -44,9 +44,10 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         PERSISTENT // For persistent storages
     }
 
+
     /**
      * Supported Protocols
-     * 
+     *
      */
     public enum Protocol {
         FILE_URI("file://"), // File protocol
@@ -56,7 +57,6 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         ANY_URI("any://"); // Other
 
         private final String schema;
-
 
         private Protocol(String schema) {
             this.schema = schema;
@@ -78,18 +78,16 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 
     }
 
-
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
     public static final String ERROR_UNSTARTED_NODE = "ERROR: Cannot retrieve URIs from an unstarted node";
 
-
     /**
      * Creates a new location in the host @host with path @uri. The URI must: - Contain a valid schema (file://,
      * shared://, object://, storage://) - Contain a valid path - Any hostname (ignored since host is received from the
      * other parameter)
-     * 
+     *
      * @param host
      * @param uri
      * @return
@@ -148,7 +146,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 
     /**
      * Private Helper method for createLocation
-     * 
+     *
      * @param host
      * @param path
      * @param protocol

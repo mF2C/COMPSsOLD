@@ -57,7 +57,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Representation of the Communication interface of the Runtime
- * 
+ *
  */
 public class Comm {
 
@@ -75,7 +75,6 @@ public class Comm {
 
     // Master information
     private static MasterResource appHost;
-
 
     /**
      * Private constructor to avoid instantiation
@@ -116,7 +115,7 @@ public class Comm {
 
     /**
      * Initializes the internal adaptor and constructs a comm configuration
-     * 
+     *
      * @param adaptorName
      * @param project_properties
      * @param resources_properties
@@ -133,8 +132,7 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException
-                    | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 
                 throw new ConstructConfigurationException(e);
             }
@@ -156,7 +154,7 @@ public class Comm {
 
     /**
      * Returns the resource assigned as master node
-     * 
+     *
      * @return
      */
     public static MasterResource getAppHost() {
@@ -165,7 +163,7 @@ public class Comm {
 
     /**
      * Initializes a worker with name @name and configuration @config
-     * 
+     *
      * @param name
      * @param config
      * @return
@@ -203,13 +201,14 @@ public class Comm {
 
     /**
      * Registers a new data with id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
     public static synchronized LogicalData registerData(String dataId) {
         LOGGER.debug("Register new data " + dataId);
 
+        System.out.println("[DATA] Regsitering " + dataId);
         LogicalData logicalData = new LogicalData(dataId);
         data.put(dataId, logicalData);
 
@@ -218,7 +217,7 @@ public class Comm {
 
     /**
      * Registers a new location @location for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param location
      * @return
@@ -235,7 +234,7 @@ public class Comm {
 
     /**
      * Registers a new value @value for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param value
      * @return
@@ -269,7 +268,7 @@ public class Comm {
 
     /**
      * Registers a new External PSCO id @id for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param id
      * @return
@@ -283,7 +282,7 @@ public class Comm {
 
     /**
      * Registers a new PSCO id @id for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param id
      * @return
@@ -306,7 +305,7 @@ public class Comm {
 
     /**
      * Clears the value of the data id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
@@ -319,7 +318,7 @@ public class Comm {
 
     /**
      * Checks if a given dataId @renaming exists
-     * 
+     *
      * @param renaming
      * @return
      */
@@ -329,13 +328,13 @@ public class Comm {
 
     /**
      * Returns the data with id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
     public static synchronized LogicalData getData(String dataId) {
         LogicalData retVal = data.get(dataId);
-        if (retVal==null) {
+        if (retVal == null) {
             LOGGER.warn("Get data " + dataId + " is null.");
         }
         return retVal;
@@ -343,7 +342,7 @@ public class Comm {
 
     /**
      * Dumps the stored data (only for testing)
-     * 
+     *
      * @return
      */
     public static synchronized String dataDump() {
@@ -372,7 +371,7 @@ public class Comm {
 
     /**
      * Returns all the data stored in a host @host
-     * 
+     *
      * @param host
      * @return
      */
@@ -383,7 +382,7 @@ public class Comm {
 
     /**
      * Removes the data with id @renaming
-     * 
+     *
      * @param renaming
      */
     public static synchronized void removeData(String renaming) {
@@ -408,7 +407,7 @@ public class Comm {
 
     /**
      * Return the active adaptors
-     * 
+     *
      * @return
      */
     public static Map<String, CommAdaptor> getAdaptors() {
@@ -417,7 +416,7 @@ public class Comm {
 
     /**
      * Stops all the submitted jobs
-     * 
+     *
      */
     public static void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {

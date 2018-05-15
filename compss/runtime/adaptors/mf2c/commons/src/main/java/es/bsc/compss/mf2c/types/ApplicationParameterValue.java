@@ -22,6 +22,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
+import storage.StorageException;
+import storage.StorageItf;
 
 
 public abstract class ApplicationParameterValue {
@@ -46,6 +48,8 @@ public abstract class ApplicationParameterValue {
     }
 
     public abstract Object getValue() throws ClassNotFoundException;
+
+    public abstract Object getContent() throws Exception;
 
     public abstract String getType();
 
@@ -104,6 +108,11 @@ public abstract class ApplicationParameterValue {
         }
 
         @Override
+        public Object getContent() throws ClassNotFoundException {
+            return getValue();
+        }
+
+        @Override
         public String getType() {
             if (elements.length > 0) {
                 return elements[0].getType() + "[";
@@ -144,6 +153,20 @@ public abstract class ApplicationParameterValue {
         @Override
         public Object getValue() {
             return value;
+        }
+
+        @Override
+        public Object getContent() throws StorageException {
+            Object val;
+            System.out.println("Getting a parameter with an " + value.getClass().getCanonicalName() + " value whose real class is " + className);
+            if (className.compareTo(value.getClass().getCanonicalName()) == 0) {
+                val = value;
+            } else {
+                
+                val = StorageItf.getByID((String) value);
+                System.out.println("Requested dataCLay for object "+(String) value+" and obtained "+val);
+            }
+            return val;
         }
 
         @Override

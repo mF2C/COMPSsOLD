@@ -46,10 +46,9 @@ public class TaskDescription implements Serializable {
     private final boolean hasTarget;
     private final boolean hasReturn;
 
-
     /**
      * Task description creation for METHODS
-     * 
+     *
      * @param signature
      * @param isPrioritary
      * @param numNodes
@@ -82,13 +81,14 @@ public class TaskDescription implements Serializable {
 
     /**
      * Task description creation for SERVICES
-     * 
+     *
      * @param namespace
      * @param service
      * @param port
      * @param operation
      * @param isPrioritary
      * @param hasTarget
+     * @param hasReturn
      * @param parameters
      */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
