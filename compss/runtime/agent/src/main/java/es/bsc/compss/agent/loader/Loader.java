@@ -87,7 +87,7 @@ public class Loader {
             }
             System.out.println("Types:\t" + Arrays.toString(types));
             System.out.println("Params:\t" + Arrays.toString(params));
-            Method main = app.getDeclaredMethod(methodName, types);
+            Method main = findMethod(app, methodName, params.length, types, params);
             main.invoke(null, params);
             runtime.noMoreTasks(appId);
 
@@ -194,6 +194,64 @@ public class Loader {
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
         return cp;
+    }
+
+    private static Method findMethod(Class<?> methodClass, String methodName, int numParams, Class<?>[] types, Object[] values) {
+        Method method = null;
+        try {
+            method = methodClass.getMethod(methodName, types);
+        } catch (NoSuchMethodException | SecurityException e) {
+            for (Method m : methodClass.getDeclaredMethods()) {
+                if (m.getName().equals(methodName) && numParams == m.getParameterCount()) {
+                    int paramId = 0;
+                    boolean isMatch = true;
+                    for (java.lang.reflect.Parameter p : m.getParameters()) {
+                        if (p.getType().isPrimitive()) {
+                            if (p.getType() != values[paramId].getClass()) {
+                                switch (p.getType().getCanonicalName()) {
+                                    case "byte":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Byte");
+                                        break;
+                                    case "char":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Char");
+                                        break;
+                                    case "short":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Short");
+                                        break;
+                                    case "int":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Integer");
+                                        break;
+                                    case "long":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Long");
+                                        break;
+                                    case "float":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Float");
+                                        break;
+                                    case "double":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Double");
+                                        break;
+                                    case "boolean":
+                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Boolean");
+                                        break;
+                                }
+                            }
+                        } else {
+                            try {
+                                p.getType().cast(values[paramId]);
+                            } catch (ClassCastException cce) {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                        paramId++;
+                    }
+                    if (isMatch) {
+                        method = m;
+                    }
+                }
+            }
+        }
+        return method;
     }
 
     private static void printVariables(Class<?> app) throws Exception {
