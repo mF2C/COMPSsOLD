@@ -38,6 +38,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
@@ -208,7 +209,7 @@ public class Comm {
     public static synchronized LogicalData registerData(String dataId) {
         LOGGER.debug("Register new data " + dataId);
 
-        System.out.println("[DATA] Regsitering " + dataId);
+        Debugger.debug("DATA", "Registering " + dataId);
         LogicalData logicalData = new LogicalData(dataId);
         data.put(dataId, logicalData);
 

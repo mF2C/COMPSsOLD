@@ -30,6 +30,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.Debugger;
 import java.lang.reflect.Method;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,7 +65,7 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
     }
 
     public void execute() throws JobExecutionException {
-        System.out.println("[EXECUTION] Preparing to execution of a new Task");
+        Debugger.debug("EXECUTION", "Preparing to execution of a new Task");
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
         // This is a workarround for Python
         MethodImplementation mImpl = (MethodImplementation) this.impl;
@@ -76,7 +77,7 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
             methodName = taskParams.getName();
             mImpl.setAlternativeMethodName(taskParams.getName());
         }
-        System.out.println("[EXECUTION]     Task Code: " + methodName + "@" + className);
+        Debugger.debug("EXECUTION", "    Task Code: " + methodName + "@" + className);
 
         Parameter[] params = taskParams.getParameters();
         DependencyParameter targetParameter = null;
@@ -94,14 +95,14 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
         boolean hasTarget = taskParams.hasTargetObject();
         Object target = null;
         if (hasTarget) {
-            System.out.println("[EXECUTION]     Target:");
+            Debugger.debug("EXECUTION", "    Target:");
             numParams--;
             Parameter param = params[numParams];
             targetParameter = (DependencyParameter) param;
             DataType type = targetParameter.getType();
-            System.out.println("[EXECUTION]             Type " + type);
+            Debugger.debug("EXECUTION", "            Type " + type);
             DataAccessId dAccId = targetParameter.getDataAccessId();
-            System.out.println("[EXECUTION]             Access " + dAccId);
+            Debugger.debug("EXECUTION", "            Access " + dAccId);
 
             String inRenaming;
             String renaming;
@@ -132,9 +133,9 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                     type = param.getType();
                 }
             }
-            System.out.println("[EXECUTION]             Actual Type " + type);
+            Debugger.debug("EXECUTION", "            Actual Type " + type);
             String sourcePath = targetParameter.getDataTarget();
-            System.out.println("[EXECUTION]             Data Target :" + targetParameter.getDataTarget());
+            Debugger.debug("EXECUTION", "            Data Target :" + targetParameter.getDataTarget());
             if (type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T) {
                 String pscoId = sourcePath;
                 try {
@@ -145,18 +146,18 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
             } else {
                 target = Comm.getData(renaming).getValue();
             }
-            System.out.println("[EXECUTION]             VALUE " + target);
+            Debugger.debug("EXECUTION", "            VALUE " + target);
         }
 
         Class<?>[] types = new Class<?>[numParams];
         Object[] values = new Object[numParams];
 
-        System.out.println("[EXECUTION]     Parameters:");
+        Debugger.debug("EXECUTION", "    Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
-            System.out.println("[EXECUTION]         * Parameter " + parIdx + ": ");
+            Debugger.debug("EXECUTION", "        * Parameter " + parIdx + ": ");
             Parameter param = params[parIdx];
             DataType type = param.getType();
-            System.out.println("[EXECUTION]             Definition Type " + type);
+            Debugger.debug("EXECUTION", "            Definition Type " + type);
             switch (type) {
                 case FILE_T:
                 case OBJECT_T:
@@ -165,7 +166,7 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                     DependencyParameter dPar = (DependencyParameter) param;
 
                     DataAccessId dAccId = dPar.getDataAccessId();
-                    System.out.println("[EXECUTION]             Access " + dAccId);
+                    Debugger.debug("EXECUTION", "            Access " + dAccId);
                     String renaming = null;
                     String inRenaming;
                     if (dAccId instanceof DataAccessId.WAccessId) {
@@ -198,9 +199,9 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                             type = param.getType();
                         }
                     }
-                    System.out.println("[EXECUTION]             Actual Type " + type);
+                    Debugger.debug("EXECUTION", "            Actual Type " + type);
                     String sourcePath = dPar.getDataTarget();
-                    System.out.println("[EXECUTION]             Data Target :" + dPar.getDataTarget());
+                    Debugger.debug("EXECUTION", "            Data Target :" + dPar.getDataTarget());
                     if (type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T) {
                         String pscoId = sourcePath;
                         try {
@@ -211,24 +212,24 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                     } else {
                         values[parIdx] = Comm.getData(renaming).getValue();
                     }
-                    System.out.println("[EXECUTION]             VALUE " + values[parIdx]);
+                    Debugger.debug("EXECUTION", "            VALUE " + values[parIdx]);
 
                     types[parIdx] = values[parIdx].getClass();
                     break;
                 default:
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     values[parIdx] = btParB.getValue();
-                    System.out.println("[EXECUTION]             Type " + type);
-                    System.out.println("[EXECUTION]             Value " + btParB.getValue());
+                    Debugger.debug("EXECUTION", "            Type " + type);
+                    Debugger.debug("EXECUTION", "            Value " + btParB.getValue());
                     types[parIdx] = values[parIdx].getClass();
             }
         }
 
         if (hasReturn) {
-            System.out.println("[EXECUTION]     Return:" + returnParameter.getDataAccessId());
+            Debugger.debug("EXECUTION", "    Return:" + returnParameter.getDataAccessId());
         }
 
-        System.out.println("[EXECUTION] Execution starts");
+        Debugger.debug("EXECUTION", "Execution starts");
 
         Class<?> methodClass = null;
         Method method = null;
@@ -242,12 +243,12 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
             LOGGER.info("Invoked " + method.getName() + " of " + target);
             retValue = method.invoke(target, values);
         } catch (Exception e) {
-            System.out.println("[EXECUTION] Execution failed");
+            Debugger.err("EXECUTION", "Execution failed");
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
         }
-        System.out.println("[EXECUTION] Execution ends");
+        Debugger.debug("EXECUTION", "Execution ends");
 
-        System.out.println("[STAGE OUT]     Parameters:");
+        Debugger.debug("STAGE OUT", "    Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
             Parameter param = params[parIdx];
             DataType type = param.getType();
@@ -271,9 +272,9 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                         }
                         dp.setType(type);
                         dp.setDataTarget(pscoId);
-                        System.out.println("[STAGE OUT]         * Parameter " + parIdx + ": ");
-                        System.out.println("[STAGE OUT]             Type: " + type);
-                        System.out.println("[STAGE OUT]             ID: " + pscoId);
+                        Debugger.debug("STAGE OUT", "        * Parameter " + parIdx + ": ");
+                        Debugger.debug("STAGE OUT", "            Type: " + type);
+                        Debugger.debug("STAGE OUT", "            ID: " + pscoId);
                     } else {
                         switch (type) {
                             case EXTERNAL_OBJECT_T:
@@ -285,15 +286,15 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                             default:
                         }
                         dp.setType(type);
-                        System.out.println("[STAGE OUT]         * Parameter " + parIdx + ": ");
-                        System.out.println("[STAGE OUT]             Type: " + type);
-                        System.out.println("[STAGE OUT]             Value: " + values[parIdx]);
+                        Debugger.debug("STAGE OUT", "        * Parameter " + parIdx + ": ");
+                        Debugger.debug("STAGE OUT", "            Type: " + type);
+                        Debugger.debug("STAGE OUT", "            Value: " + values[parIdx]);
                     }
                     break;
                 default:
             }
         }
-        System.out.println("Stage OUT " + (hasTarget ? " has target" : "has not target"));
+        
         if (hasTarget) {
             DataType type = targetParameter.getType();
             if (target != null && target instanceof StubItf && ((StubItf) target).getID() != null) {
@@ -304,9 +305,9 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                 }
                 targetParameter.setType(type);
                 targetParameter.setDataTarget(pscoId);
-                System.out.println("[STAGE OUT]         * Target : ");
-                System.out.println("[STAGE OUT]             Type: " + type);
-                System.out.println("[STAGE OUT]             ID: " + pscoId);
+                Debugger.debug("STAGE OUT", "        * Target : ");
+                Debugger.debug("STAGE OUT", "            Type: " + type);
+                Debugger.debug("STAGE OUT", "            ID: " + pscoId);
             } else {
                 switch (type) {
                     case EXTERNAL_OBJECT_T:
@@ -317,12 +318,12 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                         break;
                 }
                 targetParameter.setType(type);
-                System.out.println("[STAGE OUT]         * Target : ");
-                System.out.println("[STAGE OUT]             Type: " + type);
-                System.out.println("[STAGE OUT]             Value: " + target);
+                Debugger.debug("STAGE OUT", "        * Target : ");
+                Debugger.debug("STAGE OUT", "            Type: " + type);
+                Debugger.debug("STAGE OUT", "            Value: " + target);
             }
         }
-        System.out.println("Stage OUT " + (hasReturn ? " has return" : "has not return"));
+        
         if (hasReturn) {
             DataType type = returnParameter.getType();
             if (retValue != null && retValue instanceof StubItf && ((StubItf) retValue).getID() != null) {
@@ -333,14 +334,14 @@ public class LocalAgentJob extends AgentJob<LocalAgent> {
                 }
                 returnParameter.setType(type);
                 returnParameter.setDataTarget(pscoId);
-                System.out.println("[STAGE OUT]         * Return : ");
-                System.out.println("[STAGE OUT]             Type: " + type);
-                System.out.println("[STAGE OUT]             ID: " + pscoId);
+                Debugger.debug("STAGE OUT", "        * Return : ");
+                Debugger.debug("STAGE OUT", "            Type: " + type);
+                Debugger.debug("STAGE OUT", "            ID: " + pscoId);
             } else {
-                targetParameter.setType(type);
-                System.out.println("[STAGE OUT]         * Target : ");
-                System.out.println("[STAGE OUT]             Type: " + type);
-                System.out.println("[STAGE OUT]             Value: " + target);
+                returnParameter.setType(type);
+                Debugger.debug("STAGE OUT", "        * Return : ");
+                Debugger.debug("STAGE OUT", "            Type: " + type);
+                Debugger.debug("STAGE OUT", "            Value: " + target);
             }
         }
     }

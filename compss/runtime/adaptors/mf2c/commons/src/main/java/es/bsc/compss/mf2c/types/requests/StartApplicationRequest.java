@@ -220,8 +220,8 @@ public class StartApplicationRequest implements Serializable {
         for (ApplicationParameter param : this.params) {
             if (count > 0) {
                 sb.append(", ");
-                count++;
             }
+            count++;
             if (param.getValue() instanceof ArrayParameter) {
                 sb.append(param.getType());
             } else {

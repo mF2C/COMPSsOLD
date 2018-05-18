@@ -313,7 +313,7 @@ public class ExecutionAction extends AllocatableAction {
     private final void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-
+        int paramId = 0;
         for (Parameter p : job.getTaskParams().getParameters()) {
             if (p instanceof DependencyParameter) {
                 // OUT or INOUT: we must tell the FTM about the
@@ -366,12 +366,21 @@ public class ExecutionAction extends AllocatableAction {
                         ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
                     }
                     Comm.registerLocation(name, outLoc);
+                    TaskMonitor monitor = task.getTaskMonitor();
+                    if (monitor != null) {
+                        monitor.valueGenerated(paramId, dp.getType(), outLoc);
+                    }
                 } else {
                     // Service
                     Object value = job.getReturnValue();
                     Comm.registerValue(name, value);
+                    TaskMonitor monitor = task.getTaskMonitor();
+                    if (monitor != null) {
+                        monitor.valueGenerated(paramId, dp.getType(), value);
+                    }
                 }
             }
+            paramId++;
         }
     }
 

@@ -86,8 +86,7 @@ public class Loader {
             for (int i = 0; i < params.length; i++) {
                 types[i] = params[i].getClass();
             }
-            System.out.println("Types:\t" + Arrays.toString(types));
-            System.out.println("Params:\t" + Arrays.toString(params));
+
             Method main = findMethod(app, methodName, params.length, types, params);
             main.invoke(null, params);
             runtime.noMoreTasks(appId);
@@ -180,7 +179,6 @@ public class Loader {
                 + itSRVar + "= loader.getStreamRegistry(); \n"
                 + itORVar + "= loader.getObjectRegistry(); \n"
                 + itAppIdVar + "= appId; \n"
-                + " System.out.println(\"Variables set\");"
                 + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);

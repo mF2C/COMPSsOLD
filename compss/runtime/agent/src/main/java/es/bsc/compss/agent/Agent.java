@@ -35,6 +35,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ResourceManager;
 import java.net.InetAddress;
 import java.net.URI;
@@ -55,6 +56,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -77,7 +80,7 @@ public class Agent {
     static {
 
         String DC_CONF_PATH = System.getProperty("dataclay.configpath");
-        System.out.println("DataClay configuration: " + DC_CONF_PATH);
+        Debugger.debug("AGENT", "DataClay configuration: " + DC_CONF_PATH);
         if (DC_CONF_PATH != null) {
             try {
                 StorageItf.init(DC_CONF_PATH);
@@ -129,7 +132,7 @@ public class Agent {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startApplication(StartApplicationRequest request) {
-        System.out.println("[AGENT] Received new request:\n" + request.toString());
+        Debugger.debug("AGENT", "Received new request:\n" + request.toString());
         if (request.getResources() == null || request.getResources().length == 0) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Empty list of resources to host the execution.").build();
         }
@@ -151,7 +154,8 @@ public class Agent {
     public Response endApplication(EndApplicationNotification notification) {
         String jobId = notification.getJobId();
         JobEndStatus endStatus = notification.getEndStatus();
-        RemoteAgentJob.finishedRemoteJob(jobId, endStatus);
+        String[] paramsResults = notification.getParamResults();
+        RemoteAgentJob.finishedRemoteJob(jobId, endStatus, paramsResults);
         return Response.ok().build();
     }
 
@@ -189,7 +193,7 @@ public class Agent {
         }
 
         if (masterNode == null) {
-            System.out.println("S'ha de fer forward!");
+            Debugger.out("AGENT", " Must forward request");
         } else {
             try {
                 workerNodes = addWorkerNodes(appId, request);
@@ -276,7 +280,7 @@ public class Agent {
     private static Response runTask(StartApplicationRequest request) {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         try {
-            System.out.println("Running Task " + appId);
+            Debugger.debug("agent", "Running Task " + appId);
             List<DynamicMethodWorker> workerNodes = null;
             try {
                 workerNodes = addWorkerNodes(appId, request);
@@ -306,8 +310,12 @@ public class Agent {
                 if (typesSB.length() > 0) {
                     typesSB.append(",");
                 }
-                typesSB.append(param.getType().toString());
-                params[position] = param.getValue().getValue();
+                if (param.getType() != DataType.PSCO_T) {
+                    typesSB.append(param.getType().toString());
+                } else {
+                    typesSB.append("OBJECT_T");
+                }
+                params[position] = param.getValue().getContent();
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;
@@ -317,7 +325,7 @@ public class Agent {
 
             if (request.getTarget() != null) {
                 ApplicationParameter targetParam = request.getTarget();
-                params[position] = null;
+                params[position] = targetParam.getValue().getContent();
                 params[position + 1] = targetParam.getType();
                 params[position + 2] = targetParam.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;
@@ -348,7 +356,7 @@ public class Agent {
 
             RUNTIME.executeTask(
                     appId,
-                    new TaskMonitor(appId, null, workerNodes, orchestrator),
+                    new TaskMonitor(appId, paramsCount, null, workerNodes, orchestrator),
                     className,
                     methodName,
                     false,
@@ -414,27 +422,6 @@ public class Agent {
         }
 
         @Override
-        public abstract void onCreation();
-
-        @Override
-        public abstract void onAccessesProcess();
-
-        @Override
-        public abstract void onSchedule();
-
-        @Override
-        public abstract void onSubmission();
-
-        @Override
-        public abstract void onErrorExecution();
-
-        @Override
-        public abstract void onFailedExecution();
-
-        @Override
-        public abstract void onSuccesfulExecution();
-
-        @Override
         public void onCompletion() {
             for (DynamicMethodWorker workerNode : workerNodes) {
                 ResourceManager.reduceWholeWorker(workerNode);
@@ -442,7 +429,10 @@ public class Agent {
             if (masterNode != null) {
                 ResourceManager.reduceWholeWorker(masterNode);
             }
+            completed();
         }
+
+        public abstract void completed();
 
     }
 
@@ -450,14 +440,16 @@ public class Agent {
     private static class TaskMonitor extends AppMonitor {
 
         private final Orchestrator orchestrator;
+        private final String[] paramResults;
         private boolean successful;
 
         public TaskMonitor(
-                long appId,
+                long appId, int numParams,
                 DynamicMethodWorker masterNode, List<DynamicMethodWorker> workerNodes, Orchestrator orchestrator) {
             super(appId, masterNode, workerNodes);
             this.orchestrator = orchestrator;
             this.successful = false;
+            this.paramResults = new String[numParams];
         }
 
         @Override
@@ -477,6 +469,11 @@ public class Agent {
         }
 
         @Override
+        public void valueGenerated(int paramId, DataType type, Object value) {
+            paramResults[paramId] = value.toString();
+        }
+
+        @Override
         public void onErrorExecution() {
         }
 
@@ -491,20 +488,25 @@ public class Agent {
         }
 
         @Override
-        public void onCompletion() {
+        public void completed() {
             try {
                 if (orchestrator != null) {
                     String masterId = orchestrator.getHost();
                     String operation = orchestrator.getOperation();
                     WebTarget target = client.target(masterId);
                     WebTarget wt = target.path(operation);
-                    EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(), successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED);
-
+                    EndApplicationNotification ean = new EndApplicationNotification(
+                            "" + getAppId(),
+                            successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED,
+                            paramResults);
+                    Debugger.debug("AGENT", "Submitting Job End");
+                    Debugger.debugAsXML(ean);
+                    
                     Response response = wt
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.xml(ean), Response.class);
                     if (response.getStatusInfo().getStatusCode() != 200) {
-                        System.err.println("Could not notify Application " + getAppId() + " end to " + wt);
+                        Debugger.err("AGENT", "Could not notify Application " + getAppId() + " end to " + wt);
                     }
                 }
             } catch (Exception e) {
@@ -555,6 +557,11 @@ public class Agent {
         }
 
         @Override
+        public void valueGenerated(int paramId, DataType type, Object value) {
+
+        }
+
+        @Override
         public void onErrorExecution() {
             profile.finished();
         }
@@ -570,10 +577,9 @@ public class Agent {
         }
 
         @Override
-        public void onCompletion() {
-            super.onCompletion();
+        public void completed() {
             profile.end();
-            System.out.println("Execution lasted " + profile.getTotalTime());
+            Debugger.debug("AGENT", "Execution lasted " + profile.getTotalTime());
             ServiceOperationReport report = new ServiceOperationReport(this.serviceInstanceId, this.operation, this.profile.getTotalTime());
             report.report();
         }

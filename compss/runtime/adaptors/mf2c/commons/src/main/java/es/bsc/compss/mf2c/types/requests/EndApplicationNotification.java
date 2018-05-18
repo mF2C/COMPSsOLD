@@ -25,14 +25,15 @@ public class EndApplicationNotification {
 
     private String jobId;
     private JobEndStatus endStatus;
+    private String[] paramResults;
 
     public EndApplicationNotification() {
     }
 
-    public EndApplicationNotification(String jobId, JobEndStatus status) {
+    public EndApplicationNotification(String jobId, JobEndStatus status, String[] paramResults) {
         this.jobId = jobId;
         this.endStatus = status;
-
+        this.paramResults = paramResults;
     }
 
     public void setJobId(String jobId) {
@@ -49,6 +50,14 @@ public class EndApplicationNotification {
 
     public JobEndStatus getEndStatus() {
         return endStatus;
+    }
+
+    public void setParamResults(String[] paramResults) {
+        this.paramResults = paramResults;
+    }
+
+    public String[] getParamResults() {
+        return paramResults;
     }
 
 }

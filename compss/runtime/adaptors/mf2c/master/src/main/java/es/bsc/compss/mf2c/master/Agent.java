@@ -31,6 +31,7 @@ import es.bsc.compss.mf2c.master.configuration.AgentConfiguration;
 import static es.bsc.compss.types.COMPSsNode.DEBUG;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
+import es.bsc.compss.util.Debugger;
 import java.util.LinkedList;
 import java.util.List;
 import storage.StorageException;
@@ -61,11 +62,6 @@ public abstract class Agent extends COMPSsWorker {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
         // Never sends Data
-        System.out.println("send Data ");
-        System.out.println("\t Logical Data: " + ld);
-        System.out.println("\t Data Source: " + source);
-        System.out.println("\t Data Target: " + target);
-        System.out.println("\t Target Data: " + tgtData);
     }
 
     @Override
@@ -174,7 +170,7 @@ public abstract class Agent extends COMPSsWorker {
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
 
-        System.out.println("[STAGE IN] Requesting Storage to place a new replica of " + srcLD.getId() + " on " + targetHostname + ")");
+        Debugger.debug("STAGE IN", "Requesting Storage to place a new replica of " + srcLD.getId() + " on " + targetHostname + ")");
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
         // Get the PSCO to replicate
@@ -219,7 +215,7 @@ public abstract class Agent extends COMPSsWorker {
         LogicalData targetLD = sc.getTargetData();
         boolean preserveSource = sc.mustPreserveSourceData();
 
-        System.out.println("[STAGE IN] Requesting Storage to create a new Version of " + srcLD.getId() + "(" + srcLD.getName() + ")");
+        Debugger.debug("STAGE IN", "Requesting Storage to create a new Version of " + srcLD.getId() + "(" + srcLD.getName() + ")");
         if (DEBUG) {
             LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname
                     + " with must preserve " + preserveSource);

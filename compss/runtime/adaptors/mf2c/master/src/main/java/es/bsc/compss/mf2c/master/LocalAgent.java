@@ -33,6 +33,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import java.io.IOException;
@@ -80,17 +81,17 @@ public class LocalAgent extends Agent {
             return;
         }
 
-        System.out.println("[STAGE IN] Placing data " + ld.getName() + " as " + target);
+        Debugger.debug("STAGE IN", "Placing data " + ld.getName() + " as " + target);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }
 
         // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
         if (ld.getId() != null) {
-            System.out.println("[STAGE IN]     Using persistent storage to copy " + reason.getType() + " parameter");
+            Debugger.debug("STAGE IN", "    Using persistent storage to copy " + reason.getType() + " parameter");
             orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
         } else {
-            System.out.println("[STAGE IN]     Ordenant la còpia d'un Objecte normal");
+            Debugger.debug("STAGE IN", "    Ordering the copy of a plain object");
             /*
              * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
              * being transfered
@@ -117,14 +118,13 @@ public class LocalAgent extends Agent {
                     }
                 }
                 LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
-                System.out.println("Setting " + reason + "'s source on " + source);
 
                 reason.setDataSource(source);
                 reason.setDataTarget(targetPath);
                 listener.notifyEnd(null);
                 return;
             } else {
-                System.out.println("[STAGE IN]     Object not in memory. We **** up!!!!");
+                Debugger.err("STAGE IN", "    Object not in memory. We **** up!!!!");
             }
         }
     }

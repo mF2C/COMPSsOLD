@@ -104,9 +104,11 @@ ${DC_TOOL} dataclay.tool.GetStubs ${USERNAME} ${PASSWORD} ${NAMESPACE} ${CURRENT
 echo "Launching COMPSs agent on Worker ${NODE_HOSTNAME} and port ${NODE_PORT} with debug level ${DEBUG}"
 echo "User authenticates to Dataclay with username ${USERNAME} and password ${PASSWORD}"
 echo "DataClay will use the ${DATASET} dataset and the namespace ${NAMESPACE}"
+export COMPSS_HOME=/opt/COMPSs
 java \
 	-DCOMPSS_HOME=/opt/COMPSs \
 	-cp stubs:/app/app.jar:/app/dataclay.jar:/opt/COMPSs/Runtime/compss-agent.jar \
+	-Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 	-Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.${DEBUG} \
 	-DMF2C_HOST=${NODE_HOSTNAME} \
 	-Ddataclay.configpath=${CURRENT_DIR}/cfgfiles/session.properties \

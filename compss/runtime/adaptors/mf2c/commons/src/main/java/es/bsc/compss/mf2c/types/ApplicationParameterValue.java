@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.mf2c.types;
 
+import es.bsc.compss.util.Debugger;
 import java.lang.reflect.Array;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -158,13 +159,11 @@ public abstract class ApplicationParameterValue {
         @Override
         public Object getContent() throws StorageException {
             Object val;
-            System.out.println("Getting a parameter with an " + value.getClass().getCanonicalName() + " value whose real class is " + className);
             if (className.compareTo(value.getClass().getCanonicalName()) == 0) {
                 val = value;
             } else {
-                
                 val = StorageItf.getByID((String) value);
-                System.out.println("Requested dataCLay for object "+(String) value+" and obtained "+val);
+                Debugger.debug("DATA", "Requested DataClay object " + (String) value + " and obtained " + val);
             }
             return val;
         }

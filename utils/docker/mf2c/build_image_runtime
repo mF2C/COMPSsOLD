@@ -16,13 +16,20 @@ cd compss
 mvn -DskipTests clean install
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/
-mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration
-
 cp ${RUNTIME_DIR}/compss/runtime/agent/target/compss-agent-2.2.rc1803.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
 cp ${RUNTIME_DIR}/compss/runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar
+
+mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration
 cp ${RUNTIME_DIR}/compss/runtime/config/log/COMPSsMaster-log4j.debug ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.debug
 cp ${RUNTIME_DIR}/compss/runtime/config/log/COMPSsMaster-log4j.off ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.off
 
+
+
+mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/scheduler
+cp ${RUNTIME_DIR}/compss/runtime/scheduler/loadBalancingScheduler/target/es.bsc.compss.scheduler-loadBalancing.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/scheduler/es.bsc.compss.scheduler-loadBalancing.jar
+cp ${RUNTIME_DIR}/compss/runtime/scheduler/readyScheduler/target/es.bsc.compss.scheduler-ready.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/scheduler/es.bsc.compss.scheduler-ready.jar
+
+mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/connectors
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/launchers
 cp ${RUNTIME_DIR}/utils/docker/mf2c/launch.sh ${SANDBOX}/arrel/opt/COMPSs/launchers/launch.sh
@@ -31,6 +38,7 @@ cp ${RUNTIME_DIR}/utils/docker/mf2c/launch_dataclay.sh ${SANDBOX}/arrel/opt/COMP
 cd ${SANDBOX}
 ls
 docker build -t compss-agent:latest .
+ls -lR ${SANDBOX}
 rm -rf ${SANDBOX}
 
 cd ${INIT_DIR}

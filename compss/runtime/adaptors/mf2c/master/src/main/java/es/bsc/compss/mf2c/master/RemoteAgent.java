@@ -30,6 +30,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.util.Debugger;
 import java.util.List;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -77,7 +78,7 @@ public class RemoteAgent extends Agent {
         if (ld == null) {
             return;
         }
-        System.out.println("[STAGE IN] Placing data " + ld.getName() + " as " + target);
+        Debugger.debug("stage in", "Placing data " + ld.getName() + " as " + target);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }

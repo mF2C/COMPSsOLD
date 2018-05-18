@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
 
@@ -230,9 +231,9 @@ public interface COMPSsRuntime {
     public void barrier(Long appId);
 
     /**
-     * Freezes the task generation until all previous tasks have been executed.
-     * The noMoreTasks parameter indicates whether to expect new tasks after the barrier or not
-     * 
+     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
+     * whether to expect new tasks after the barrier or not
+     *
      * @param appId
      * @param noMoreTasks
      */
@@ -290,6 +291,8 @@ public interface COMPSsRuntime {
         public void onSchedule();
 
         public void onSubmission();
+
+        public void valueGenerated(int paramId, DataType type, Object value);
 
         public void onErrorExecution();
 

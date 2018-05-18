@@ -38,6 +38,7 @@ import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
@@ -167,13 +168,13 @@ public class DataInfoProvider {
      * @return
      */
     public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code) {
-        System.out.println("[Task Analyzer]         Registering object access on " + value + " (" + code + ") as " + mode);
+        Debugger.debug("task analyzer", "         Registering object access on " + value + " (" + code + ") as " + mode);
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
         // First access to this datum
         if (aoId == null) {
-            System.out.println("[Task Analyzer]             First access to the object");
+            Debugger.debug("task analyzer", "            First access to the object");
             if (DEBUG) {
                 LOGGER.debug("FIRST access to object " + code);
             }
@@ -181,7 +182,7 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
-            System.out.println("[Task Analyzer]             Assigned id " + aoId + " to the object");
+            Debugger.debug("task analyzer", "            Assigned id " + aoId + " to the object");
             codeToId.put(code, aoId);
             idToData.put(aoId, oInfo);
 
@@ -191,9 +192,9 @@ public class DataInfoProvider {
 
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
-                System.out.println("[Task Analyzer]             Registering data " + renaming + " -> " + value);
+                Debugger.debug("task analyzer", "            Registering data " + renaming + " -> " + value);
                 LogicalData ld = Comm.registerValue(renaming, value);
-                System.out.println("[Task Analyzer]             ID:"+ ld.getId());
+                Debugger.debug("task analyzer", "            ID:"+ ld.getId());
             }
         } else {
             // The datum has already been accessed
@@ -304,7 +305,7 @@ public class DataInfoProvider {
                 sb.append("[Task Analyzer]                  ").append("  * Type: RW").append("\n");
                 sb.append("[Task Analyzer]                  ").append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getRVersionId()).append("\n");
                 sb.append("[Task Analyzer]                  ").append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getWVersionId()).append("\n");
-                System.out.println(sb.toString());
+                Debugger.debug(sb.toString());
                 break;
         }
         return daId;

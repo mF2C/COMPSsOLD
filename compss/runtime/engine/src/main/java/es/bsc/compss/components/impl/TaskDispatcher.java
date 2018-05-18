@@ -365,7 +365,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             LOGGER.warn("WARN: COMPSS_HOME not defined, no schedulers loaded.");
             return;
         }
-
+        
         try {
             Classpath.loadPath(compssHome + SCHEDULERS_REL_PATH, LOGGER);
         } catch (FileNotFoundException ex) {

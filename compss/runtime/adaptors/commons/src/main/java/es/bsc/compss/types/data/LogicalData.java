@@ -35,6 +35,7 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
@@ -210,7 +211,7 @@ public class LogicalData {
      * @param loc
      */
     public synchronized void addLocation(DataLocation loc) {
-        System.out.println("[DATA] Adding location " + loc + " to " + name);
+        Debugger.debug("DATA", "Adding location " + loc + " to " + name);
         this.isBeingSaved = false;
         this.locations.add(loc);
         switch (loc.getType()) {
@@ -267,7 +268,7 @@ public class LogicalData {
      * @param id
      */
     public synchronized void setId(String id) {
-        System.out.println("[DATA] setting PSCO Id " + id + " to " + getName());
+        Debugger.debug("DATA", "Setting PSCO Id " + id + " to " + getName());
         this.id = id;
     }
 
