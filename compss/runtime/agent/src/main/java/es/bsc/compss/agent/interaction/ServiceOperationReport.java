@@ -83,7 +83,7 @@ public class ServiceOperationReport {
     public void report() {
         ClientConfig config = new ClientConfig();
         Client client = ClientBuilder.newClient(config);
-        WebTarget target = client.target("https://" + targetAddress);
+        WebTarget target = client.target(targetAddress);
         target = target.path("api/service-operation-report");
         System.out.println("Reporting execution time to :" + target.getUri().toString());
         Response r;
@@ -114,7 +114,7 @@ public class ServiceOperationReport {
     }
 
     public static void main(String[] args) {
-        ServiceOperationReport report = new ServiceOperationReport("dashboard.mf2c-project.eu", UUID.randomUUID().toString(), "test", 720l);
+        ServiceOperationReport report = new ServiceOperationReport("https://dashboard.mf2c-project.eu", UUID.randomUUID().toString(), "test", 720l);
         report.report();
     }
 

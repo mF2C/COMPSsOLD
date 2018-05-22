@@ -78,7 +78,7 @@ public class Agent {
     private static final Client client = ClientBuilder.newClient(config);
 
     private static final String REPORT_ADDRESS;
-    private static final String DEFAULT_REPORT_ADDRESS = "proxy:443";
+    private static final String DEFAULT_REPORT_ADDRESS = "https://proxy:443";
 
     static {
 

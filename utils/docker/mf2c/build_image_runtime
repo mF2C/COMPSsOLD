@@ -37,7 +37,7 @@ cp ${RUNTIME_DIR}/utils/docker/mf2c/launch_dataclay.sh ${SANDBOX}/arrel/opt/COMP
 
 cd ${SANDBOX}
 ls
-docker build -t compss-agent:latest .
+docker build -t mf2c/compss-agent:latest .
 
 rm -rf ${SANDBOX}
 

@@ -18,7 +18,7 @@ RUN apt-get update && \
     cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 
 COPY ["arrel", "/"]
-ENV MF2C_HOST=localhost DEBUG=off REPORT_ADDRESS=proxy:443
+ENV MF2C_HOST=localhost DEBUG=off REPORT_ADDRESS=https://proxy:443
 
 CMD /opt/COMPSs/launchers/launch.sh -h ${MF2C_HOST} -d ${DEBUG} -ra ${REPORT_ADDRESS}
 
