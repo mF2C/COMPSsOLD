@@ -77,8 +77,16 @@ public class Agent {
     private static final ClientConfig config = new ClientConfig();
     private static final Client client = ClientBuilder.newClient(config);
 
+    private static final String REPORT_ADDRESS;
+    private static final String DEFAULT_REPORT_ADDRESS = "proxy:443";
+
     static {
 
+        String reportAddress = System.getProperty("report.address");
+        if (reportAddress == null) {
+            reportAddress = DEFAULT_REPORT_ADDRESS;
+        }
+        REPORT_ADDRESS = reportAddress;
         String DC_CONF_PATH = System.getProperty("dataclay.configpath");
         Debugger.debug("AGENT", "DataClay configuration: " + DC_CONF_PATH);
         if (DC_CONF_PATH != null) {
@@ -501,7 +509,7 @@ public class Agent {
                             paramResults);
                     Debugger.debug("AGENT", "Submitting Job End");
                     Debugger.debugAsXML(ean);
-                    
+
                     Response response = wt
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.xml(ean), Response.class);
@@ -580,7 +588,7 @@ public class Agent {
         public void completed() {
             profile.end();
             Debugger.debug("AGENT", "Execution lasted " + profile.getTotalTime());
-            ServiceOperationReport report = new ServiceOperationReport(this.serviceInstanceId, this.operation, this.profile.getTotalTime());
+            ServiceOperationReport report = new ServiceOperationReport(REPORT_ADDRESS, this.serviceInstanceId, this.operation, this.profile.getTotalTime());
             report.report();
         }
     }

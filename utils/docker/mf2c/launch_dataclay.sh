@@ -18,7 +18,8 @@ Mandatory options:
 
 COMPSs options:  
   -p, --port               	port on which the agent listens. Default value 46100
-  -d, --debug				enables debug.
+  -ra, --reportAddress		URL of the service where to report the execution profile
+  -d, --debug			enables debug.
 
 DataClay options:  
   -u, --username            	DataClay user
@@ -34,14 +35,15 @@ EOF
 
 while true; do
   case "$1" in
-	-h	| --hostname )	NODE_HOSTNAME=$2; 		shift 2;;
-	-p 	| --port ) 	NODE_PORT=$2; 			shift 2;;
-	-d	| --debug )	DEBUG=$2;			shift 2;;
-	-u 	| --user ) 	USERNAME=$2; 			shift 2;;
-	-pwd 	| --password )	PASSWORD=$2; 			shift 2;;
-	-ds 	| --dataset )	DATASET=$2; 			shift 2;;
-	-ns	| --namespace )	NAMESPACE=$2; 			shift 2;;
-	--help)			usage;				exit;;					
+	-h	| --hostname )		NODE_HOSTNAME=$2; 		shift 2;;
+	-p 	| --port ) 		NODE_PORT=$2; 			shift 2;;
+	-ra 	| --reportAddress )	REPORT_ADDRESS=$2; 		shift 2;;
+	-d	| --debug )		DEBUG=$2;			shift 2;;
+	-u 	| --user ) 		USERNAME=$2; 			shift 2;;
+	-pwd 	| --password )		PASSWORD=$2; 			shift 2;;
+	-ds 	| --dataset )		DATASET=$2; 			shift 2;;
+	-ns	| --namespace )		NAMESPACE=$2; 			shift 2;;
+	--help)				usage;				exit;;					
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -111,6 +113,7 @@ java \
 	-Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 	-Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.${DEBUG} \
 	-DMF2C_HOST=${NODE_HOSTNAME} \
+	-Dreport.address=${REPORT_ADDRESS} \
 	-Ddataclay.configpath=${CURRENT_DIR}/cfgfiles/session.properties \
 	es.bsc.compss.agent.Agent \
 	${NODE_PORT}

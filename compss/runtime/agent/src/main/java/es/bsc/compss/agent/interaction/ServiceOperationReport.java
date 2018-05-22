@@ -28,6 +28,7 @@ import org.glassfish.jersey.client.ClientConfig;
 
 public class ServiceOperationReport {
 
+    private String targetAddress;
     private ServiceInstance serviceInstance;
     private String operation;
     private float execution_time;
@@ -37,7 +38,8 @@ public class ServiceOperationReport {
 
     }
 
-    public ServiceOperationReport(String serviceInstanceId, String operation, long time) {
+    public ServiceOperationReport(String targetAddress, String serviceInstanceId, String operation, long time) {
+        this.targetAddress = targetAddress;
         this.serviceInstance = new ServiceInstance("service-instance/" + serviceInstanceId);
         this.operation = operation;
         this.execution_time = time;
@@ -81,8 +83,9 @@ public class ServiceOperationReport {
     public void report() {
         ClientConfig config = new ClientConfig();
         Client client = ClientBuilder.newClient(config);
-        WebTarget target = client.target("https://dashboard.mf2c-project.eu");
+        WebTarget target = client.target("https://" + targetAddress);
         target = target.path("api/service-operation-report");
+        System.out.println("Reporting execution time to :" + target.getUri().toString());
         Response r;
 
         /*
@@ -95,7 +98,6 @@ public class ServiceOperationReport {
             e.printStackTrace();
         }
         //*/
-
         //* //POST VERSION
         r = target
                 .request(MediaType.APPLICATION_JSON)
@@ -112,7 +114,7 @@ public class ServiceOperationReport {
     }
 
     public static void main(String[] args) {
-        ServiceOperationReport report = new ServiceOperationReport(UUID.randomUUID().toString(), "test", 720l);
+        ServiceOperationReport report = new ServiceOperationReport("dashboard.mf2c-project.eu", UUID.randomUUID().toString(), "test", 720l);
         report.report();
     }
 
