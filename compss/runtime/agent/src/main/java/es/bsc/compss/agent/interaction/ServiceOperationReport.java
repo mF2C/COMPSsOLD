@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.agent.interaction;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import es.bsc.compss.mf2c.types.exceptions.ServiceException;
+import es.bsc.compss.util.Debugger;
 import java.util.UUID;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -81,36 +84,39 @@ public class ServiceOperationReport {
     }
 
     public void report() {
-        ClientConfig config = new ClientConfig();
-        Client client = ClientBuilder.newClient(config);
-        WebTarget target = client.target(targetAddress);
-        target = target.path("api/service-operation-report");
-        System.out.println("Reporting execution time to :" + target.getUri().toString());
-        Response r;
+        if (targetAddress != null) {
+            ClientConfig config = new ClientConfig();
+            Client client = ClientBuilder.newClient(config);
+            WebTarget target = client.target(targetAddress);
+            target = target.path("service-operation-report");
+            Debugger.debug("Reporting execution time to :" + target.getUri().toString());
+            Response r;
 
-        /*
-        // DEBUGGER OF SERVICE_OPERATION_REPORT IN JSON
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(this);
-            System.out.println("Publishing result of an operation execution:\n" + json);
-        } catch (Exception e) {
-            e.printStackTrace();
+            // DEBUGGER OF SERVICE_OPERATION_REPORT IN JSON
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writeValueAsString(this);
+                System.out.println("Publishing result of an operation execution:\n" + json);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                r = target
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("slipstream-authn-info", "super ADMIN")
+                        .post(Entity.json(this), Response.class);
+
+                Debugger.debug("Report status code: " + r.getStatusInfo().getStatusCode());
+                if (r.getStatusInfo().getStatusCode() != 200) {
+                    Debugger.err(r.getStatusInfo().getReasonPhrase());
+                    Debugger.err(r.readEntity(String.class));
+                } else {
+                    Debugger.debug("Report published correctly");
+                }
+            } catch (Exception e) {
+                Debugger.err(e);
+            }
         }
-        //*/
-        //* //POST VERSION
-        r = target
-                .request(MediaType.APPLICATION_JSON)
-                .header("slipstream-authn-info", "super ADMIN")
-                .post(Entity.json(this), Response.class);
-        /*/
-        // GET VERSION
-        r = target
-                .request(MediaType.APPLICATION_JSON)
-                .header("slipstream-authn-info", "super ADMIN")
-                .get(Response.class);
-        System.out.println(r.readEntity(String.class));
-        //*/
     }
 
     public static void main(String[] args) {

@@ -56,8 +56,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -78,15 +76,15 @@ public class Agent {
     private static final Client client = ClientBuilder.newClient(config);
 
     private static final String REPORT_ADDRESS;
-    private static final String DEFAULT_REPORT_ADDRESS = "https://proxy:443";
 
     static {
-
         String reportAddress = System.getProperty("report.address");
-        if (reportAddress == null) {
-            reportAddress = DEFAULT_REPORT_ADDRESS;
+        if (reportAddress != null && reportAddress.compareTo("null") != 0) {
+            REPORT_ADDRESS = reportAddress;
+        } else {
+            REPORT_ADDRESS = null;
         }
-        REPORT_ADDRESS = reportAddress;
+        System.out.println("Reporting executions profiles to " + REPORT_ADDRESS);
         String DC_CONF_PATH = System.getProperty("dataclay.configpath");
         Debugger.debug("AGENT", "DataClay configuration: " + DC_CONF_PATH);
         if (DC_CONF_PATH != null) {

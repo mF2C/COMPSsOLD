@@ -1,8 +1,8 @@
 #!/bin/bash
 
-
 NODE_PORT=46100
 DEBUG="off"
+REPORT_ADDRESS=""
 
 USERNAME="AppUser"
 PASSWORD="AppPwd"
@@ -35,15 +35,15 @@ EOF
 
 while true; do
   case "$1" in
-	-h	| --hostname )		NODE_HOSTNAME=$2; 		shift 2;;
-	-p 	| --port ) 		NODE_PORT=$2; 			shift 2;;
-	-ra 	| --reportAddress )	REPORT_ADDRESS=$2; 		shift 2;;
-	-d	| --debug )		DEBUG=$2;			shift 2;;
-	-u 	| --user ) 		USERNAME=$2; 			shift 2;;
-	-pwd 	| --password )		PASSWORD=$2; 			shift 2;;
-	-ds 	| --dataset )		DATASET=$2; 			shift 2;;
-	-ns	| --namespace )		NAMESPACE=$2; 			shift 2;;
-	--help)				usage;				exit;;					
+	-h	| --hostname )		NODE_HOSTNAME=$2; 				shift 2;;
+	-p 	| --port ) 		NODE_PORT=$2; 					shift 2;;
+	-ra 	| --reportAddress )	REPORT_ADDRESS=$2; 				shift 2;;
+	-d	| --debug )		DEBUG=$2;					shift 2;;
+	-u 	| --user ) 		USERNAME=$2; 					shift 2;;
+	-pwd 	| --password )		PASSWORD=$2; 					shift 2;;
+	-ds 	| --dataset )		DATASET=$2; 					shift 2;;
+	-ns	| --namespace )		NAMESPACE=$2; 					shift 2;;
+	--help)				usage;						exit;;					
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -107,13 +107,14 @@ echo "Launching COMPSs agent on Worker ${NODE_HOSTNAME} and port ${NODE_PORT} wi
 echo "User authenticates to Dataclay with username ${USERNAME} and password ${PASSWORD}"
 echo "DataClay will use the ${DATASET} dataset and the namespace ${NAMESPACE}"
 export COMPSS_HOME=/opt/COMPSs
+REPORT_ADDRESS="-Dreport.address=${REPORT_ADDRESS} ";
 java \
 	-DCOMPSS_HOME=/opt/COMPSs \
 	-cp stubs:/app/app.jar:/app/dataclay.jar:/opt/COMPSs/Runtime/compss-agent.jar \
 	-Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 	-Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.${DEBUG} \
 	-DMF2C_HOST=${NODE_HOSTNAME} \
-	-Dreport.address=${REPORT_ADDRESS} \
+	${REPORT_ADDRESS}\
 	-Ddataclay.configpath=${CURRENT_DIR}/cfgfiles/session.properties \
 	es.bsc.compss.agent.Agent \
 	${NODE_PORT}

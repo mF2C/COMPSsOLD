@@ -1,6 +1,5 @@
 package es.bsc.compss.util;
 
-import java.io.PrintStream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -17,6 +16,16 @@ public class Debugger {
 
     public static void out(String message) {
         System.out.println(message);
+    }
+
+    public static final void out(Exception e) {
+        e.printStackTrace(System.out);
+    }
+
+    public static final void debug(Exception e) {
+        if (DEBUG) {
+            e.printStackTrace(System.out);
+        }
     }
 
     public static final void debug(String tag, String message) {
@@ -37,6 +46,10 @@ public class Debugger {
 
     public static final void err(String message) {
         System.err.println(message);
+    }
+
+    public static final void err(Exception e) {
+        e.printStackTrace(System.err);
     }
 
     public static void debugAsXML(Object value) throws PropertyException, JAXBException {
