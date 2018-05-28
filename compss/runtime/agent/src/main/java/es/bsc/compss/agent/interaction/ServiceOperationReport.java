@@ -120,7 +120,7 @@ public class ServiceOperationReport {
     }
 
     public static void main(String[] args) {
-        ServiceOperationReport report = new ServiceOperationReport("https://dashboard.mf2c-project.eu", UUID.randomUUID().toString(), "test", 720l);
+        ServiceOperationReport report = new ServiceOperationReport("https://dashboard.mf2c-project.eu/api", UUID.randomUUID().toString(), "test", 720l);
         report.report();
     }
 
