@@ -46,7 +46,7 @@ REPORT_ADDRESS="-Dreport.address=${REPORT_ADDRESS} ";
 export COMPSS_HOME=/opt/COMPSs
 java \
 	-DCOMPSS_HOME=/opt/COMPSs \
-	-cp /app/app.jar:/opt/COMPSs/Runtime/compss-agent.jar \
+	-cp /app/app.jar:/app/lib/*.jar:/opt/COMPSs/Runtime/compss-agent.jar \
 	-Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.${DEBUG} \
 	-Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 	-DMF2C_HOST=${NODE_HOSTNAME} \

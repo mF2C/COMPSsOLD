@@ -18,7 +18,8 @@ RUN apt-get update && \
     cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 
 COPY ["arrel", "/"]
-ENV MF2C_HOST=localhost DEBUG=off REPORT_ADDRESS="null"
+ENV MF2C_HOST=localhost DEBUG=off REPORT_ADDRESS="null" LOGICMODULE_EP=127.0.0.1:11034
+WORKDIR /tmp
 
-CMD /opt/COMPSs/launchers/launch.sh -h ${MF2C_HOST} -d ${DEBUG} -ra ${REPORT_ADDRESS}
+CMD /opt/COMPSs/launchers/launch.sh -h ${MF2C_HOST} -d ${DEBUG} -ra ${REPORT_ADDRESS} -lm ${LOGICMODULE_EP}
 

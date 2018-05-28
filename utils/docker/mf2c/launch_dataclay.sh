@@ -1,9 +1,13 @@
 #!/bin/bash
 
+#COMPSs Options
 NODE_PORT=46100
 DEBUG="off"
 REPORT_ADDRESS=""
 
+#DataClay Options
+LOGICMODULE_HOST="127.0.0.1"
+LOGICMODULE_PORT="11034"
 USERNAME="AppUser"
 PASSWORD="AppPwd"
 DATASET="AppDS"
@@ -22,6 +26,7 @@ COMPSs options:
   -d, --debug			enables debug.
 
 DataClay options:  
+  -lm, --logicmodule		DataClay's logic module endpoint
   -u, --username            	DataClay user
   -pwd, --password		DataClay password 
   -ds, --dataset		DataClay dataset name
@@ -35,17 +40,58 @@ EOF
 
 while true; do
   case "$1" in
-	-h	| --hostname )		NODE_HOSTNAME=$2; 				shift 2;;
-	-p 	| --port ) 		NODE_PORT=$2; 					shift 2;;
-	-ra 	| --reportAddress )	REPORT_ADDRESS=$2; 				shift 2;;
-	-d	| --debug )		DEBUG=$2;					shift 2;;
-	-u 	| --user ) 		USERNAME=$2; 					shift 2;;
-	-pwd 	| --password )		PASSWORD=$2; 					shift 2;;
-	-ds 	| --dataset )		DATASET=$2; 					shift 2;;
-	-ns	| --namespace )		NAMESPACE=$2; 					shift 2;;
-	--help)				usage;						exit;;					
-    -- ) shift; break ;;
-    * ) break ;;
+	-h	| --hostname )		
+		NODE_HOSTNAME=$2;
+ 		shift 2;;
+
+	-p 	| --port ) 	
+		NODE_PORT=$2;
+		shift 2;;
+
+	-ra 	| --reportAddress )	
+		REPORT_ADDRESS=$2;
+ 		shift 2;;
+
+	-d	| --debug )
+		DEBUG=$2;
+		shift 2;;
+
+	-lm	| --logicmodule )
+		OLD_IFS=${IFS}
+		IFS=':' read -ra ADDR <<< "$2"
+		if [ "${ADDR[0]}" != "" ]; then
+			LOGICMODULE_HOST="${ADDR[0]}"
+		fi
+		if [ "${ADDR[1]}" != "" ]; then
+			LOGICMODULE_PORT="${ADDR[1]}"
+		fi
+		IFS=${OLD_IFS}
+		shift 2;;
+
+	-u 	| --user ) 
+		USERNAME=$2;
+		shift 2;;
+
+	-pwd 	| --password )
+		PASSWORD=$2;
+		shift 2;;
+
+	-ds 	| --dataset )
+		DATASET=$2;
+		shift 2;;
+
+	-ns	| --namespace )
+		NAMESPACE=$2;
+		shift 2;;
+
+	--help)	
+		usage;
+		exit;;					
+    	-- ) 
+		shift; 
+		break;;
+    	* ) 
+		break ;;
   esac
 done
 
@@ -58,14 +104,14 @@ fi
 CURRENT_DIR=`pwd`
 
 echo "GENERATING DATACLAY CONFIGURATION FILES..."
-echo "    * Creating client.properties"
+echo "    * Creating client.properties at ${CURRENT_DIR}"
 mkdir -p ${CURRENT_DIR}/cfgfiles
 cat << EOF >> ${CURRENT_DIR}/cfgfiles/client.properties
-HOST=127.0.0.1
-TCPPORT=11034
+HOST=${LOGICMODULE_HOST}
+TCPPORT=${LOGICMODULE_PORT}
 EOF
 
-echo "    * Creating session.properties"
+echo "    * Creating session.properties at ${CURRENT_DIR}"
 cat << EOF >> ${CURRENT_DIR}/cfgfiles/session.properties
 Account=${USERNAME}
 Password=${PASSWORD}
@@ -110,7 +156,7 @@ export COMPSS_HOME=/opt/COMPSs
 REPORT_ADDRESS="-Dreport.address=${REPORT_ADDRESS} ";
 java \
 	-DCOMPSS_HOME=/opt/COMPSs \
-	-cp stubs:/app/app.jar:/app/dataclay.jar:/opt/COMPSs/Runtime/compss-agent.jar \
+	-cp stubs:/app/app.jar:/app/lib/*:/app/dataclay.jar:/opt/COMPSs/Runtime/compss-agent.jar \
 	-Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 	-Dlog4j.configurationFile=/opt/COMPSs/Runtime/configuration/COMPSsMaster-log4j.${DEBUG} \
 	-DMF2C_HOST=${NODE_HOSTNAME} \
