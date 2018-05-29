@@ -67,6 +67,7 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Debugger;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
@@ -156,6 +157,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
+                Debugger.err(e);
                 LOGGER.error("Exception", e);
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

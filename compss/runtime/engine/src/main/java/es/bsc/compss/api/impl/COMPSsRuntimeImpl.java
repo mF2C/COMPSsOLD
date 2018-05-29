@@ -55,6 +55,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Debugger;
 
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
@@ -703,7 +704,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     private int executeTask(Long appId, TaskMonitor monitor, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
-        
+        Debugger.debug("AGENT", "NEW EXECUTE TASK");
+        Debugger.debug("AGENT", "    Signature: " + signature);
+        Debugger.debug("AGENT", "    Parameters (" + parameterCount + ")");
+        int pos = 0;
+        for (int parId = 0; parId < parameterCount; parId++) {
+            Debugger.debug("AGENT", "        Parameter " + parId);
+            try {
+                Debugger.debug("AGENT", "            Type " + parameters[pos + 1]);
+                Debugger.debug("AGENT", "            Direction " + parameters[pos + 2]);
+                Debugger.debug("AGENT", "            Value " + parameters[pos]);
+            } catch (Exception e) {
+                Debugger.err(e);
+            }
+            pos += 5;
+        }
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
