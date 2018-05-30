@@ -313,8 +313,9 @@ public class ExecutionAction extends AllocatableAction {
     private final void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-        int paramId = 0;
+        int paramId = -1;
         for (Parameter p : job.getTaskParams().getParameters()) {
+            paramId++;
             if (p instanceof DependencyParameter) {
                 // OUT or INOUT: we must tell the FTM about the
                 // generated/updated datum
@@ -380,7 +381,6 @@ public class ExecutionAction extends AllocatableAction {
                     }
                 }
             }
-            paramId++;
         }
     }
 
