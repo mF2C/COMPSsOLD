@@ -62,6 +62,24 @@ public abstract class Agent extends COMPSsWorker {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
         // Never sends Data
+        if (target.getHosts().contains(Comm.getAppHost())) {
+            // Request to master
+            System.out.println("[DATA] Trying to fetch data " + ld.getName());
+            // Order petition directly
+            if (tgtData != null) {
+                MultiURI u = ld.alreadyAvailable(Comm.getAppHost());
+                if (u != null) { // Already present at the master
+                    System.out.println("[DATA]  Already available!");
+                    reason.setDataTarget(u.getPath());
+                    listener.notifyEnd(null);
+                    return;
+                }
+            }
+
+        } else {
+            // Request to any other
+            System.out.println("[DATA] Trying to order a copy for data " + ld.getName() + " across workers");
+        }
     }
 
     @Override
