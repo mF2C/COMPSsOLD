@@ -16,7 +16,7 @@ cd compss
 mvn -DskipTests clean install
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/
-cp ${RUNTIME_DIR}/compss/runtime/agent/target/compss-agent-2.2.rc1803.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
+cp ${RUNTIME_DIR}/compss/runtime/agent/target/compss-agent-mf2c-it1.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/compss-agent.jar
 cp ${RUNTIME_DIR}/compss/runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar ${SANDBOX}/arrel/opt/COMPSs/Runtime/adaptors/mf2c/master/compss-adaptors-mf2c-master.jar
 
 mkdir -p ${SANDBOX}/arrel/opt/COMPSs/Runtime/configuration

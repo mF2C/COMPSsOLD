@@ -8,7 +8,7 @@ import javax.xml.bind.PropertyException;
 
 public class Debugger {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void out(String tag, String message) {
         System.out.println("[" + tag.toUpperCase() + "] " + message);

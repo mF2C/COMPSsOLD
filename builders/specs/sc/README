@@ -25,10 +25,10 @@ COMPSs documentation can be found at http://compss.bsc.es or at the Doc/ folder
 Installation
 ------------
 1.- Unzip the package
-    $ tar -xvf COMPSs_2.2.rc1803.tar.gz
+    $ tar -xvf COMPSs_mf2c-it1.tar.gz
 
 2.- Execute the installation script
-    $ cd COMPSs_2.2.rc1803/; ./install <targetDir>
+    $ cd COMPSs_mf2c-it1/; ./install <targetDir>
 
 
 Dependencies

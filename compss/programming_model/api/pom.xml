@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-pm</artifactId>
-<version>2.2.rc1803</version>
+		<version>mf2c-it1</version>
 		<relativePath>..</relativePath>
 	</parent>
 

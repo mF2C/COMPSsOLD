@@ -5,7 +5,7 @@
 	<!-- GENERAL INFORMATION -->
 	<groupId>es.bsc.compss</groupId>
 	<artifactId>compss-trunk</artifactId>
-<version>2.2.rc1803</version>
+	<version>mf2c-it1</version>
 	<packaging>pom</packaging>
 
 	<!-- PROJECT INFORMATION -->
@@ -26,9 +26,9 @@
 
 	<!-- PROPERTIES -->
 	<properties>
-<compss.version>2.2.rc1803</compss.version>
+		<compss.version>mf2c-it1</compss.version>
 		<junit.version>4.12</junit.version>
-        <junit.rules.version>1.16.1</junit.rules.version>
+        	<junit.rules.version>1.16.1</junit.rules.version>
 
 		<!-- Maven Plugins -->
 		<maven.compiler.source>1.8</maven.compiler.source>

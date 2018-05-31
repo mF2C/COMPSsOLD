@@ -5,10 +5,10 @@
   <artifactId>instrumentation</artifactId>
   <packaging>maven-plugin</packaging>
   <parent>
-                <groupId>es.bsc.compss</groupId>
-                <artifactId>compss-trunk</artifactId>
-<version>2.2.rc1803</version>
-                <relativePath>../..</relativePath>
+    <groupId>es.bsc.compss</groupId>
+    <artifactId>compss-trunk</artifactId>
+    <version>mf2c-it1</version>
+    <relativePath>../..</relativePath>
   </parent>
 
   <name>Instrumentation Maven Mojo</name>
