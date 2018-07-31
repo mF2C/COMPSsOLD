@@ -517,7 +517,7 @@ public class DataInfoProvider {
      * @param toRequest
      * @return
      */
-    public LogicalData transferObjectValue(TransferObjectRequest toRequest) {
+    public void transferObjectValue(TransferObjectRequest toRequest) {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
@@ -531,7 +531,7 @@ public class DataInfoProvider {
 
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
-            return null;
+            return;
         }
 
         if (ld.isInMemory()) {
@@ -561,11 +561,9 @@ public class DataInfoProvider {
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
-
+            toRequest.setTargetData(ld);
             Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
-
-        return ld;
     }
 
     /**
